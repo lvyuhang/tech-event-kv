@@ -1,0 +1,28 @@
+{
+  "_comment": "复制到项目目录后修改。相对路径相对本文件所在目录。每个 size 里的字段（hero/focal/zoom/layout/scrim/theme/h1_scale）会覆盖全局同名字段。",
+  "theme": "dark",
+  "layout": "L1",
+  "palette": { "bg": "#0A0716", "text": "#FFFFFF", "muted": "rgba(255,255,255,.62)", "accent": "#7C5CFF" },
+  "fonts": {},
+  "hero": "heroes/hero_16x9.png",
+  "focal": [0.68, 0.5],
+  "zoom": 1,
+  "scrim": true,
+  "text": {
+    "logo_text": "Galaxy Cloud",
+    "logo_image": null,
+    "eyebrow": "",
+    "h1": ["星河开发者大会"],
+    "h2": "Galaxy DevCon 2026",
+    "slogan": ["AI 原生，", "代码即未来。"],
+    "meta": ["2026.12.11–12", "中国 · 深圳"],
+    "footnote": "GALAXY DEVELOPER CONFERENCE 2026",
+    "rail": { "label": "主会场", "sub": "Keynote Hall", "date": "12.11–12.12" }
+  },
+  "sizes": [
+    { "name": "screen_16x9", "w": 1920, "h": 1080 },
+    { "name": "poster_9x16", "w": 1080, "h": 1920, "hero": "heroes/hero_9x16.png", "focal": [0.5, 0.7] },
+    { "name": "wechat_cover", "w": 900, "h": 383, "zoom": 1.1 },
+    { "name": "square", "w": 1080, "h": 1080 }
+  ]
+}

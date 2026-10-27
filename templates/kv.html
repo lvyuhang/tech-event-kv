@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<!-- KV 排版模板。render.py 会在 head 结束前注入 window.KV = {config, size}，不要手动改这一行以下的结构。 -->
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-latin), var(--font-cjk), sans-serif;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+  }
+  /* --u = 画布短边的 1%，所有尺寸都以它为单位 */
+  .hero { position: absolute; inset: 0; overflow: hidden; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .scrim { position: absolute; inset: 0; pointer-events: none; }
+
+  .logo { position: absolute; top: var(--m); left: var(--m); display: flex; align-items: center; gap: calc(var(--u) * 1); z-index: 3; }
+  .logo img { height: calc(var(--u) * 5); width: auto; display: block; }
+  .logo span { font-weight: 700; font-size: calc(var(--u) * 2.6); letter-spacing: -0.01em; }
+
+  .block { position: absolute; z-index: 2; display: flex; flex-direction: column; }
+  .eyebrow { font-size: calc(var(--u) * 1.6); letter-spacing: 0.4em; text-transform: uppercase; color: var(--muted); margin-bottom: calc(var(--u) * 2); }
+  .h1 { font-weight: 800; font-size: calc(var(--u) * var(--h1, 9)); line-height: 1.08; letter-spacing: -0.02em; }
+  .h1 .line { display: block; white-space: nowrap; }
+  .h2 { font-size: calc(var(--u) * 2.2); letter-spacing: 0.32em; text-transform: uppercase; color: var(--muted); margin-top: calc(var(--u) * 2); font-weight: 400; }
+  .slogan { font-size: calc(var(--u) * 4); line-height: 1.25; font-weight: 500; margin-top: calc(var(--u) * 6); }
+  .slogan .line { display: block; }
+  .meta { display: flex; gap: calc(var(--u) * 3); margin-top: calc(var(--u) * 4); font-size: calc(var(--u) * 2.8); font-weight: 500; font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+  .meta .num { font-family: var(--font-latin), var(--font-cjk), sans-serif; font-weight: 400; }
+  .foot { position: absolute; left: var(--m); bottom: calc(var(--m) * 0.7); font-size: calc(var(--u) * 1.8); letter-spacing: 0.45em; text-transform: uppercase; color: var(--muted); z-index: 2; white-space: nowrap; }
+
+  /* L3 信息栏 */
+  .rail { position: absolute; z-index: 2; display: flex; flex-direction: column; justify-content: center; }
+  .rail .rule { height: 2px; background: var(--text); opacity: .85; width: 100%; }
+  .rail .cell { padding: calc(var(--u) * 3.2) 0; }
+  .rail .big { font-size: calc(var(--u) * 6.5); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+  .rail .mid { font-size: calc(var(--u) * 4); font-weight: 600; }
+
+  /* L4 满版文字 */
+  .L4 .h1 { font-size: calc(var(--u) * var(--h1, 16)); line-height: 0.95; }
+</style>
+</head>
+<body>
+<div class="hero"><img id="heroImg" alt=""></div>
+<div class="scrim" id="scrim"></div>
+<div class="logo" id="logo"></div>
+<div id="content"></div>
+<div class="foot" id="foot"></div>
+
+<script>
+(function () {
+  const { config: C, size: S } = window.KV;
+  const W = S.w, H = S.h, ratio = W / H;
+  const portrait = ratio < 0.85, squareish = ratio >= 0.85 && ratio <= 1.2, ultrawide = ratio > 2.2;
+  const pick = (k, d) => (S[k] !== undefined ? S[k] : (C[k] !== undefined ? C[k] : d));
+  let layout = pick('layout', 'L1');
+  if (squareish && (layout === 'L1' || layout === 'L3') && S.layout === undefined) layout = 'L2';
+  if (portrait && layout === 'L3') layout = 'L1';
+
+  const theme = pick('theme', 'dark');
+  const P = Object.assign(
+    theme === 'dark'
+      ? { bg: '#0A0716', text: '#FFFFFF', muted: 'rgba(255,255,255,.62)' }
+      : { bg: '#FFFFFF', text: '#0B0B12', muted: 'rgba(11,11,18,.55)' },
+    C.palette || {}
+  );
+  const F = Object.assign({
+    cjk: '"Noto Sans SC","Noto Sans CJK SC","Source Han Sans SC","MiSans","PingFang SC"',
+    latin: '"Inter","Space Grotesk","Manrope","Helvetica Neue",Arial',
+    mono: '"JetBrains Mono","IBM Plex Mono",monospace'
+  }, C.fonts || {});
+
+  const u = Math.min(W, H) / 100;
+  const m = Math.min(W, H) * (portrait ? 0.08 : (ratio > 1.6 ? 0.07 : 0.075));
+  const root = document.documentElement.style;
+  root.setProperty('--u', u + 'px');
+  root.setProperty('--m', m + 'px');
+  root.setProperty('--bg', P.bg); root.setProperty('--text', P.text); root.setProperty('--muted', P.muted);
+  root.setProperty('--font-cjk', F.cjk); root.setProperty('--font-latin', F.latin); root.setProperty('--font-mono', F.mono);
+  if (pick('h1_scale')) root.setProperty('--h1', pick('h1_scale'));
+  document.body.classList.add(layout);
+
+  // 主图：focal 决定裁切中心，zoom 以 focal 为原点放大
+  const hero = pick('hero', null);
+  const img = document.getElementById('heroImg');
+  if (hero) {
+    const [fx, fy] = pick('focal', [0.5, 0.5]);
+    img.src = hero;
+    img.style.objectPosition = (fx * 100) + '% ' + (fy * 100) + '%';
+    const z = pick('zoom', 1);
+    if (z !== 1) { img.style.transformOrigin = (fx * 100) + '% ' + (fy * 100) + '%'; img.style.transform = 'scale(' + z + ')'; }
+  } else {
+    img.remove();
+  }
+
+  const T = C.text || {};
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const lines = v => (Array.isArray(v) ? v : (v ? [v] : [])).map(l => '<span class="line">' + esc(l) + '</span>').join('');
+
+  // logo
+  const logo = document.getElementById('logo');
+  if (T.logo_image) logo.innerHTML = '<img src="' + esc(T.logo_image) + '">';
+  else if (T.logo_text) logo.innerHTML = '<span>' + esc(T.logo_text) + '</span>';
+
+  // 底注
+  document.getElementById('foot').textContent = T.footnote || '';
+
+  // 文字块
+  const content = document.getElementById('content');
+  const block = document.createElement('div');
+  block.className = 'block';
+  const parts = [];
+  if (T.eyebrow) parts.push('<div class="eyebrow">' + esc(T.eyebrow) + '</div>');
+  if (T.h1) parts.push('<div class="h1">' + lines(T.h1) + '</div>');
+  if (T.h2) parts.push('<div class="h2">' + esc(T.h2) + '</div>');
+  if (T.slogan && !ultrawide && !(layout === 'L2' && squareish && S.slogan !== true)) parts.push('<div class="slogan">' + lines(T.slogan) + '</div>');
+  const metaItems = (T.meta || []);
+  if (metaItems.length && layout !== 'L3') parts.push('<div class="meta">' + metaItems.map(x => '<span>' + esc(x) + '</span>').join('') + '</div>');
+  block.innerHTML = parts.join('');
+  content.appendChild(block);
+
+  const bs = block.style;
+  const scrim = document.getElementById('scrim');
+  const useScrim = pick('scrim', false);
+  const sc = P.bg;
+  const fade = (dir, a, b) => 'linear-gradient(' + dir + ',' + sc + ' ' + a + '%,' + sc + 'cc ' + ((a + b) / 2) + '%,transparent ' + b + '%)';
+
+  if (layout === 'L1' && !portrait) {
+    bs.left = m + 'px'; bs.top = '50%'; bs.transform = 'translateY(-55%)'; bs.maxWidth = (ultrawide ? 50 : 42) + '%';
+    if (useScrim) scrim.style.background = fade('90deg', 0, 55);
+  } else if ((layout === 'L1' || layout === 'L3') && portrait) {
+    bs.left = m + 'px'; bs.right = m + 'px'; bs.top = (H * 0.13) + 'px';
+    if (useScrim) scrim.style.background = fade('180deg', 0, 55);
+  } else if (layout === 'L2') {
+    bs.left = m + 'px'; bs.right = m + 'px'; bs.bottom = (m * 1.6) + 'px'; bs.alignItems = 'center'; bs.textAlign = 'center';
+    document.getElementById('foot').style.display = 'none';
+    if (useScrim) scrim.style.background = fade('0deg', 0, 50);
+  } else if (layout === 'L3') {
+    bs.left = m + 'px'; bs.top = (m * 2.2) + 'px'; bs.maxWidth = '60%';
+    const rail = document.createElement('div');
+    rail.className = 'rail';
+    rail.style.right = m + 'px'; rail.style.top = (H * 0.28) + 'px'; rail.style.bottom = (H * 0.12) + 'px'; rail.style.width = (W * 0.24) + 'px';
+    const r = T.rail || {};
+    const cells = [];
+    if (r.label) cells.push('<div class="cell mid">' + esc(r.label) + '</div>');
+    if (r.sub) cells.push('<div class="cell" style="font-size:calc(var(--u)*2.4);color:var(--muted)">' + esc(r.sub) + '</div>');
+    const date = r.date || metaItems[0];
+    if (date) cells.push('<div class="cell big">' + esc(date) + '</div>');
+    rail.innerHTML = '<div class="rule"></div>' + cells.join('<div class="rule" style="opacity:.25"></div>') + '<div class="rule"></div>';
+    content.appendChild(rail);
+    if (useScrim) scrim.style.background = 'linear-gradient(270deg,' + sc + ' 0%,' + sc + 'cc 25%,transparent 40%)';
+  } else if (layout === 'L4') {
+    bs.left = m + 'px'; bs.right = m + 'px'; bs.top = '50%'; bs.transform = 'translateY(-50%)';
+    if (useScrim) scrim.style.background = sc + '99';
+  }
+
+  // 自动缩字：H1 超出文字块宽度时逐步缩小，避免溢出
+  document.fonts.ready.then(() => {
+    const h1 = block.querySelector('.h1');
+    const limit = (layout === 'L1' && !portrait) ? W * (ultrawide ? 0.5 : 0.42) : W - 2 * m;
+    if (h1) {
+      h1.style.width = 'max-content';
+      let s = parseFloat(getComputedStyle(h1).fontSize), guard = 0;
+      while (h1.getBoundingClientRect().width > limit + 1 && guard++ < 40) { s *= 0.95; h1.style.fontSize = s + 'px'; }
+      h1.style.width = '';
+    }
+    document.body.setAttribute('data-ready', '1');
+  });
+})();
+</script>
+</body>
+</html>
