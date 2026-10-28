@@ -6,6 +6,7 @@
 
 ## 思路
 
+- **参考调研**：联网检索本活动往届、同类活动和跨界作品，拆解手法，归纳红海清单和天花板，生成情绪板。
 - **概念先行**：从活动主张出发，经过三层联想和 10 种造境手法发散 ≥ 9 个概念，按直白度（L0–L3）和五维打分筛选，避免"AI = 神经网络"式的直译。
 - **场景式主图**：提示词先写世界再写主体，强制写主体与环境的互动（光的溢出、倒影、环境接触……），交给外部生图模型生成不含文字的主图。
 - **排版系统**：5 套排版系统（swiss / bleed / editorial / terminal / center）+ 字体配方库；渲染时检测字体是否真的加载。
@@ -18,6 +19,7 @@
 SKILL.md                    主流程与硬规则
 references/
   brief.md                  brief 字段、活动类型 → 默认调性
+  research.md               参考调研：范围、来源、检索词、拆解表、红海清单、版权边界
   concept.md                概念推导：主张、三层联想、造境手法、直白度、打分、艺术指导
   directions.md             8 种视觉风格
   prompt-recipes.md         7 段式场景提示词
@@ -34,6 +36,7 @@ scripts/
   render.py                 多尺寸渲染、主图取色、字体检测、总览图
   cutout.py                 前景抠图（蒙版 / rembg / 亮度键）
   placeholder.py            占位主图
+  moodboard.py              参考图情绪板
 examples/galaxy-devcon/     完整示例：concept.md、提示词、配置、主图、输出
 ```
 
@@ -56,5 +59,6 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v0.3：参考调研步骤与情绪板脚本
 - v0.2：概念推导方法、场景式提示词与融合手法、字体库与排版系统、分层合成、审美评分、完整示例
 - v0.1：基础流程、单层排版模板
