@@ -11,7 +11,9 @@
 - **场景式主图**：提示词先写世界再写主体，强制写主体与环境的互动（光的溢出、倒影、环境接触……），交给外部生图模型生成不含文字的主图。
 - **排版系统**：6 套排版系统（swiss / lockup / bleed / editorial / terminal / center）+ 字体配方库；渲染时检测字体是否真的加载。
 - **分层合成**：主图 → 雾 → 细线 → 巨字 → 前景抠图 → 文字 → 调色 / 暗角 / 颗粒。文字可以从主体后面穿过，颜色从主图取，颗粒同时覆盖图和字。
-- **审美自检**：硬性检查 + 七维审美评分，不达标按最低分维度回到对应步骤迭代。
+- **主图路线**：生图模型 / 生成式代码图层 / 混合 / 模型出光影 + 排版出内容 / 透镜后期，按概念选择。
+- **审美自检**：硬性检查 + 八维审美评分（先和天花板作品并排校准），不达标按最低分维度回到对应步骤迭代。
+- **经验沉淀**：评审经验进 `references/lessons.md`，设计师标注资料进 `library/`。
 
 ## 结构
 
@@ -21,7 +23,7 @@ references/
   brief.md                  brief 字段、活动类型 → 默认调性
   research.md               参考调研：范围、来源、检索词、拆解表、红海清单、版权边界
   concept.md                概念推导：主张、三层联想、造境手法、直白度、打分、艺术指导
-  directions.md             8 种视觉风格
+  directions.md             9 种视觉风格
   prompt-recipes.md         7 段式场景提示词
   integration.md            主体与背景融合：提示词手法 + 合成手段
   typography.md             字体库、字体配方、6 套排版系统、微排版规则
@@ -29,6 +31,7 @@ references/
   sizes.md                  延展尺寸表
   qa-checklist.md           硬性检查 + 审美评分
   case-studies.md           参考案例拆解
+  lessons.md                经验库：踩过的坑（症状 → 原因 → 修正 → 规则位置）
 templates/
   kv.html                   分层合成 + 排版系统模板
   config.example.json       配置示例
@@ -41,7 +44,9 @@ scripts/
   glyph_flow.py             生成式图层：真实代码字符组成的流 + 代码纹理
   glass_lens.py             玻璃透镜后期：折射、阴影、焦散，透镜内外两种状态
   compose_photo.py          把生图模型的透明物体照片和排版内容合成（自动检测 + 折射）
-examples/galaxy-devcon/     完整示例（v0.3 全流程）：参考调研、概念推导、3 个方向的提示词、配置、主图、两轮评分
+  library_index.py          设计资料库索引、查询、对照板
+examples/galaxy-devcon/     完整示例：参考调研、概念推导、4 轮评审与修改记录、生成式主图、配置、输出
+library/                    设计资料库：标注模板、范例条目、自动索引
 ```
 
 ## 快速开始
@@ -63,6 +68,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v0.7：SKILL.md 重写为统一结构（主图路线表、排版系统表、硬规则 7 条）；经验库 lessons.md；设计资料库 library/ 与 library_index.py
 - v0.6：invite 排版系统（一图一句）；compose_photo.py（模型出光影、排版出内容）；评分校准与高端品牌减法规则
 - v0.5：玻璃透镜后期 glass_lens.py；lockup 增加 info_side / mark_weight / mark_tracking；真实品牌概念稿规则
 - v0.4：时代感与识别度规则（contemporary.md）、lockup 排版系统与纹理填充、生成式代码图层 glyph_flow.py、D9 风格；评分增加第 8 项
