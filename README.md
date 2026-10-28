@@ -40,6 +40,7 @@ scripts/
   moodboard.py              参考图情绪板
   glyph_flow.py             生成式图层：真实代码字符组成的流 + 代码纹理
   glass_lens.py             玻璃透镜后期：折射、阴影、焦散，透镜内外两种状态
+  compose_photo.py          把生图模型的透明物体照片和排版内容合成（自动检测 + 折射）
 examples/galaxy-devcon/     完整示例（v0.3 全流程）：参考调研、概念推导、3 个方向的提示词、配置、主图、两轮评分
 ```
 
@@ -62,6 +63,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v0.6：invite 排版系统（一图一句）；compose_photo.py（模型出光影、排版出内容）；评分校准与高端品牌减法规则
 - v0.5：玻璃透镜后期 glass_lens.py；lockup 增加 info_side / mark_weight / mark_tracking；真实品牌概念稿规则
 - v0.4：时代感与识别度规则（contemporary.md）、lockup 排版系统与纹理填充、生成式代码图层 glyph_flow.py、D9 风格；评分增加第 8 项
 - v0.3：参考调研步骤与情绪板脚本；按完整流程重做示例，并据此修正取色、巨字定位（mark_baseline）、竖版信息区等问题

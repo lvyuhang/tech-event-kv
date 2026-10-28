@@ -325,6 +325,24 @@
     return { hazeDir: portrait ? 'both' : 'bottom' };
   };
 
+  // invite：一张图 + 一行字。主画面满版，只保留 tagline、活动名 + 日期、可选的极小注释。适合高端品牌。
+  SYS.invite = function () {
+    const align = pick('invite_align', 'center');
+    const parts = [];
+    if (T.slogan) parts.push(el('front', 'disp', esc(arr(T.slogan).join(' ')), { fontSize: px((portrait ? 6.2 : 5.2) * u), fontWeight: 600, letterSpacing: '-0.025em', lineHeight: 1.05 }));
+    const sub = [T.mark || arr(T.en)[0], (info[0] || {}).v].filter(Boolean).join('  ·  ');
+    if (sub) parts.push(el('front', 'disp muted', esc(sub), { fontSize: px((portrait ? 2.6 : 2.2) * u), fontWeight: 500, letterSpacing: '0.005em' }));
+    const gaps = [0, 1.6 * u];
+    const total = parts.reduce((t, e, i) => t + box(e).height + (gaps[i] || 0), 0);
+    let y = H * pick('invite_y', portrait ? 0.84 : 0.8) - total / 2;
+    parts.forEach((e, i) => { y += gaps[i] || 0; const b = box(e); e.style.top = px(y); e.style.left = px(align === 'left' ? m : (W - b.width) / 2); y += b.height; });
+    if (T.note && !tiny) {
+      const n = el('front', 'muted', esc(T.note), { fontSize: px(Math.max(1.2 * u, 10)), letterSpacing: '0.02em' });
+      n.style.left = px(W - m - box(n).width); n.style.top = px(H - m * 0.6 - box(n).height);
+    }
+    return { hazeDir: 'bottom' };
+  };
+
   SYS.editorial = function () {
     topbar({ rule: false });
     const x0 = side === 'right' && !portrait ? cx(6) : m;

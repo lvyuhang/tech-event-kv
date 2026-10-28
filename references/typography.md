@@ -118,6 +118,12 @@ config 的 `fonts` 字段：
 - **适合**：活动名本身有画面感、需要强识别度的大会。
 - **参数**：`mark`、`mark_size`（相对画面高度，横版默认 0.4）、`mark_top`、`mark_fill`、`mark_texture`；`text.lockup` 为锁定组合文字（默认取 h1 去掉 mark 的部分）。
 
+### `invite` 一图一句（高端品牌）
+- **结构**：主画面满版；只保留 tagline（`slogan`）、活动名 + 日期（`mark` + `info[0]`）、可选的极小注释（`note`，如"Unofficial concept"）。没有顶栏、编号、标签网格。
+- **参数**：`invite_align`（`center` / `left`）、`invite_y`（文字组中心的高度，默认横版 0.8）。
+- **适合**：Apple 这一级的品牌、发布会邀请函、主画面足够强的方向。
+- **前提**：主画面必须是高精度渲染或摄影，否则减法只会显得空。
+
 ### `editorial` 编辑部
 - **网格**：不对称，大量留白。
 - **标题**：宋体 Heavy 中文 + 衬线斜体英文（Instrument Serif Italic），两者字号接近，交错排列；或中文**竖排**，英文横排。
