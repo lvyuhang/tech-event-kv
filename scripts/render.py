@@ -87,7 +87,7 @@ def palette_from_image(path, theme="dark"):
     if bins[order[0]][0] > 0:
         a = order[0]
         res["accent"] = color(a, 0.92 if theme == "dark" else 0.5)
-        far = [k for k in order[1:] if bins[k][0] > bins[a][0] * 0.08 and min(abs(k - a), 12 - abs(k - a)) >= 2]
+        far = [k for k in order[1:] if bins[k][0] > bins[a][0] * 0.02 and min(abs(k - a), 12 - abs(k - a)) >= 2]
         res["glow"] = color(far[0], 0.9 if theme == "dark" else 0.55) if far else res["accent"]
     lum = sorted(px, key=lambda p: 0.2126 * p[0] + 0.7152 * p[1] + 0.0722 * p[2])
     part = lum[: max(1, len(lum) // 4)] if theme == "dark" else lum[-max(1, len(lum) // 4):]

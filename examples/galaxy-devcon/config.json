@@ -1,36 +1,101 @@
 {
   "theme": "dark",
   "type_system": "swiss",
+  "text_side": "left",
   "hero": "heroes/hero_16x9.png",
   "hero_fg": "heroes/hero_16x9_fg.png",
-  "focal": [0.62, 0.5],
-  "fx": { "grain": 0.09, "vignette": 0.3, "haze": 0.5, "glow": 0.25, "grade": 0.06 },
+  "focal": [
+    0.5,
+    0.5
+  ],
+  "color_from_hero": true,
+  "fx": {
+    "grain": 0.1,
+    "vignette": 0.28,
+    "haze": 0.42,
+    "glow": 0.12,
+    "grade": 0.05
+  },
+  "fonts": {
+    "files": {},
+    "cjk": "\"HarmonyOS Sans SC\", \"Noto Sans SC\", \"Noto Sans CJK SC\"",
+    "latin": "\"Inter\"",
+    "display": "\"Inter Display\", \"Inter\"",
+    "mono": "\"JetBrains Mono\", \"DejaVu Sans Mono\""
+  },
   "text": {
     "logo_text": "Galaxy Cloud",
     "index": "Nº 03",
     "coords": "22.53°N 114.06°E",
     "kicker": "Developer Conference",
     "kicker_no": "03",
-    "h1": ["星河开发者大会"],
-    "en": ["Galaxy DevCon 2026"],
-    "mark": "DEV",
-    "slogan": ["写下第一行，", "世界随之亮起"],
-    "cmd": "devcon run --edition 3 --city shenzhen",
-    "issue": "VOL.03",
+    "h1": [
+      "星河开发者大会"
+    ],
+    "en": [
+      "Galaxy DevCon 2026"
+    ],
+    "mark": "GALAXY",
+    "slogan": [
+      "每一行代码，",
+      "汇成星河"
+    ],
     "info": [
-      { "k": "Date", "v": "2026.12.11–12" },
-      { "k": "Venue", "v": "深圳 · 会展中心" },
-      { "k": "Host", "v": "Galaxy Cloud" }
+      {
+        "k": "Date",
+        "v": "2026.12.11–12"
+      },
+      {
+        "k": "Venue",
+        "v": "深圳 · 会展中心"
+      },
+      {
+        "k": "Host",
+        "v": "Galaxy Cloud"
+      }
     ],
     "footnote": "Galaxy Developer Conference 2026"
   },
   "sizes": [
-    { "name": "swiss_16x9", "w": 1920, "h": 1080 },
-    { "name": "bleed_16x9", "w": 1920, "h": 1080, "type_system": "bleed", "focal": [0.5, 0.5] },
-    { "name": "editorial_16x9", "w": 1920, "h": 1080, "type_system": "editorial" },
-    { "name": "terminal_16x9", "w": 1920, "h": 1080, "type_system": "terminal" },
-    { "name": "swiss_9x16", "w": 1080, "h": 1920, "hero": "heroes/hero_9x16.png", "hero_fg": "heroes/hero_9x16_fg.png", "focal": [0.5, 0.5] },
-    { "name": "square", "w": 1080, "h": 1080, "focal": [0.45, 0.5] },
-    { "name": "wechat", "w": 900, "h": 383 }
+    {
+      "name": "screen_16x9",
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "name": "screen_bleed",
+      "w": 1920,
+      "h": 1080,
+      "type_system": "bleed",
+      "mark_baseline": 0.615,
+      "mark_width": 0.92,
+      "mark_opacity": 0.92,
+      "hero_fg": "heroes/hero_16x9_fg_galaxy.png"
+    },
+    {
+      "name": "poster_9x16",
+      "w": 1080,
+      "h": 1920,
+      "hero": "heroes/hero_9x16.png",
+      "hero_fg": "heroes/hero_9x16_fg.png"
+    },
+    {
+      "name": "wechat_cover",
+      "w": 900,
+      "h": 383,
+      "focal": [
+        0.5,
+        0.55
+      ]
+    },
+    {
+      "name": "square",
+      "w": 1080,
+      "h": 1080,
+      "focal": [
+        0.62,
+        0.5
+      ]
+    }
   ]
 }

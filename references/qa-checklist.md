@@ -67,7 +67,9 @@
 | 文字压在主体上 | 调 `focal`；换 `text_side`；该尺寸换排版系统 |
 | 浅色主图上白字看不清 | `theme: light`；或加大 `fx.haze` |
 | 巨字太抢、遮住了场景 | `title_fill: fade`（默认）或 `outline`；降低 `mark_width` |
-| 巨字和主体没有前后关系 | 生成 `hero_fg`（scripts/cutout.py） |
+| 巨字和主体没有前后关系 | 生成 `hero_fg`（scripts/cutout.py）；环境元素（银河、光束）也可以进前景 |
+| 巨字挡住了画面的叙事焦点 | `mark_baseline` 让巨字立在地平线上；或降低 `mark_width` |
+| 取色只有一个色相 | 检查 render.py 输出的取色；在 `palette.glow` 手动指定第二色 |
 | 标题看起来发虚 | 降低 `fx.glow`，浅色画面设为 0 |
 | 颜色和主图不搭 | 确认 `color_from_hero: true`；或在 `palette` 里手动指定 |
 | 方图里文字太挤 | 该尺寸 `type_system: center`，或缩短 `h1` 为两行 |

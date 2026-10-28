@@ -43,6 +43,8 @@ v0.1 的提示词结构是"主体 → 材质 → 背景"，写出来的是**一�
 | 巨字穿插（bleed） | `the hero stands in the middle third, tall, with clear separation from the background so it can be cut out; the area behind it is [具体内容]` | 同左 |
 | 右信息栏 | `the hero sits in the lower-left, within the left 65% of the frame; the top quarter and right third are [具体内容]` | 同左文右图 |
 
+**信息区也要安静**：底部（或放日期地点的位置）同样写成"安静的水面 / 地面 / 天空"，否则信息会压在高亮元素上。竖版尤其注意：写明 `the bottom eighth is calm dark [water/ground] with only a few sparse [elements]`。
+
 **[7 质感]** 选一组，不要全堆：
 - 3D 渲染感：`cinematic 3D render, physically based materials, subtle film grain, high dynamic range`
 - 摄影感：`shot on 35mm film, natural grain, slight halation around highlights`

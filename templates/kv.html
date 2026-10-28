@@ -225,7 +225,7 @@
     const ruleTop = bottomInfo(x0, portrait ? W - 2 * m : span(nCols), yb, { columns: portrait ? null : info.map((_, i) => x0 + i * (colW + g) * (nCols / Math.max(info.length, 1)) ) });
     if (!tiny && !portrait) { tick(x0, ruleTop); tick(x0 + span(nCols), ruleTop); }
     footnote(m, yb, 'right');
-    return { hazeDir: portrait ? 'top' : side };
+    return { hazeDir: portrait ? 'both' : side };
   };
 
   SYS.bleed = function () {
@@ -258,6 +258,13 @@
     const mb = box(mk);
     mk.style.left = px((W - mb.width) / 2 + pick('mark_dx', 0) * W);
     mk.style.top = px(bandTop + 2 * u + (bandH - mb.height) * pick('mark_y', 0.5));
+    // mark_baseline：巨字底边落在画面某个高度（如地平线），让字"立"在场景里
+    if (pick('mark_baseline', null) !== null) {
+      const fs0 = parseFloat(mk.style.fontSize); const top0 = parseFloat(mk.style.top);
+      const r = mk.getBoundingClientRect();
+      // 用字形实际墨迹底边（大写字母基线）估算：行高 0.74 时，基线约在盒底上方 4%
+      mk.style.top = px(H * pick('mark_baseline', 0.6) - r.height * 0.96);
+    }
     const fill = pick('title_fill', 'fade');
     if (fill === 'fade') {
       // 巨字下沿淡出到环境里（像立在雾/水中），不是一块硬贴片
@@ -368,8 +375,14 @@
   // ---------- 后期 ----------
   const dir = res.hazeDir;
   if (fx.haze > 0) {
-    const ang = { left: '90deg', right: '270deg', top: '180deg', bottom: '0deg' }[dir] || '90deg';
-    document.getElementById('haze').style.background = `linear-gradient(${ang}, ${hexA(P.shade, fx.haze)} 0%, ${hexA(P.shade, fx.haze * 0.55)} 30%, transparent 62%)`;
+    const grad = a => `linear-gradient(${a}, ${hexA(P.shade, fx.haze)} 0%, ${hexA(P.shade, fx.haze * 0.55)} 30%, transparent 62%)`;
+    if (dir === 'both') {
+      // 竖版：顶部文字区 + 底部信息区各一层
+      document.getElementById('haze').style.background = grad('180deg') + ',' + `linear-gradient(0deg, ${hexA(P.shade, Math.min(0.9, fx.haze * 1.6))} 0%, ${hexA(P.shade, fx.haze * 0.6)} 14%, transparent 26%)`;
+    } else {
+      const ang = { left: '90deg', right: '270deg', top: '180deg', bottom: '0deg' }[dir] || '90deg';
+      document.getElementById('haze').style.background = grad(ang);
+    }
   }
   if (fx.grade > 0) document.getElementById('post-grade').style.background = hexA(P.glow, fx.grade);
   if (fx.vignette > 0) document.getElementById('post-vig').style.background = `radial-gradient(ellipse at 50% 50%, transparent 55%, ${hexA(theme === 'dark' ? '#000000' : '#5a5a6a', fx.vignette)} 100%)`;

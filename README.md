@@ -2,7 +2,7 @@
 
 为程序 / 技术类运营活动（开发者大会、技术峰会、黑客松、发布会、AI 大会、技术沙龙）构思并产出 KV 主视觉物料的 agent skill。
 
-![示例](examples/galaxy-devcon/out/bleed_16x9_1920x1080.jpg)
+![示例](examples/galaxy-devcon/out/screen_bleed_1920x1080.jpg)
 
 ## 思路
 
@@ -37,7 +37,7 @@ scripts/
   cutout.py                 前景抠图（蒙版 / rembg / 亮度键）
   placeholder.py            占位主图
   moodboard.py              参考图情绪板
-examples/galaxy-devcon/     完整示例：concept.md、提示词、配置、主图、输出
+examples/galaxy-devcon/     完整示例（v0.3 全流程）：参考调研、概念推导、3 个方向的提示词、配置、主图、两轮评分
 ```
 
 ## 快速开始
@@ -59,6 +59,6 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
-- v0.3：参考调研步骤与情绪板脚本
+- v0.3：参考调研步骤与情绪板脚本；按完整流程重做示例，并据此修正取色、巨字定位（mark_baseline）、竖版信息区等问题
 - v0.2：概念推导方法、场景式提示词与融合手法、字体库与排版系统、分层合成、审美评分、完整示例
 - v0.1：基础流程、单层排版模板
