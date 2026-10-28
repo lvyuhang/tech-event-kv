@@ -2,174 +2,384 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<!-- KV 排版模板。render.py 会在 head 结束前注入 window.KV = {config, size}，不要手动改这一行以下的结构。 -->
+<!-- KV 排版模板 v0.2。render.py 在 head 结束前注入 window.KV = {config, size, auto}。 -->
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; height: 100%; overflow: hidden; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-latin), var(--font-cjk), sans-serif;
-    -webkit-font-smoothing: antialiased;
-    position: relative;
-  }
-  /* --u = 画布短边的 1%，所有尺寸都以它为单位 */
-  .hero { position: absolute; inset: 0; overflow: hidden; }
-  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .scrim { position: absolute; inset: 0; pointer-events: none; }
+  body { background: var(--bg); color: var(--text); font-family: var(--latin), var(--cjk), sans-serif;
+         -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; position: relative; }
+  .layer { position: absolute; inset: 0; pointer-events: none; }
+  .layer img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  #post-grain { mix-blend-mode: overlay; }
+  #post-grade { mix-blend-mode: soft-light; }
 
-  .logo { position: absolute; top: var(--m); left: var(--m); display: flex; align-items: center; gap: calc(var(--u) * 1); z-index: 3; }
-  .logo img { height: calc(var(--u) * 5); width: auto; display: block; }
-  .logo span { font-weight: 700; font-size: calc(var(--u) * 2.6); letter-spacing: -0.01em; }
-
-  .block { position: absolute; z-index: 2; display: flex; flex-direction: column; }
-  .eyebrow { font-size: calc(var(--u) * 1.6); letter-spacing: 0.4em; text-transform: uppercase; color: var(--muted); margin-bottom: calc(var(--u) * 2); }
-  .h1 { font-weight: 800; font-size: calc(var(--u) * var(--h1, 9)); line-height: 1.08; letter-spacing: -0.02em; }
-  .h1 .line { display: block; white-space: nowrap; }
-  .h2 { font-size: calc(var(--u) * 2.2); letter-spacing: 0.32em; text-transform: uppercase; color: var(--muted); margin-top: calc(var(--u) * 2); font-weight: 400; }
-  .slogan { font-size: calc(var(--u) * 4); line-height: 1.25; font-weight: 500; margin-top: calc(var(--u) * 6); }
-  .slogan .line { display: block; }
-  .meta { display: flex; gap: calc(var(--u) * 3); margin-top: calc(var(--u) * 4); font-size: calc(var(--u) * 2.8); font-weight: 500; font-variant-numeric: tabular-nums; flex-wrap: wrap; }
-  .meta .num { font-family: var(--font-latin), var(--font-cjk), sans-serif; font-weight: 400; }
-  .foot { position: absolute; left: var(--m); bottom: calc(var(--m) * 0.7); font-size: calc(var(--u) * 1.8); letter-spacing: 0.45em; text-transform: uppercase; color: var(--muted); z-index: 2; white-space: nowrap; }
-
-  /* L3 信息栏 */
-  .rail { position: absolute; z-index: 2; display: flex; flex-direction: column; justify-content: center; }
-  .rail .rule { height: 2px; background: var(--text); opacity: .85; width: 100%; }
-  .rail .cell { padding: calc(var(--u) * 3.2) 0; }
-  .rail .big { font-size: calc(var(--u) * 6.5); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
-  .rail .mid { font-size: calc(var(--u) * 4); font-weight: 600; }
-
-  /* L4 满版文字 */
-  .L4 .h1 { font-size: calc(var(--u) * var(--h1, 16)); line-height: 0.95; }
+  .t { position: absolute; white-space: nowrap; }
+  .cjk { font-family: var(--latin-for-cjk), var(--cjk), sans-serif; font-feature-settings: "palt" 1; }
+  .mono { font-family: var(--mono), monospace; font-variant-numeric: tabular-nums; }
+  .disp { font-family: var(--display), var(--latin), sans-serif; }
+  .serif { font-family: var(--serif-latin), var(--serif-cjk), serif; }
+  .serif-cjk { font-family: var(--serif-latin), var(--serif-cjk), serif; font-feature-settings: "palt" 1; }
+  .muted { color: var(--muted); }
+  .caps { text-transform: uppercase; }
+  .line { display: block; }
+  .rule { position: absolute; height: 1px; background: var(--rule); }
+  .vrule { position: absolute; width: 1px; background: var(--rule); }
+  .tick { position: absolute; width: var(--tk); height: var(--tk); }
+  .tick::before, .tick::after { content: ""; position: absolute; background: var(--rule-strong); }
+  .tick::before { left: 50%; top: 0; bottom: 0; width: 1px; }
+  .tick::after { top: 50%; left: 0; right: 0; height: 1px; }
+  .cell .k { display: block; }
+  .cell .v { display: block; font-variant-numeric: tabular-nums; }
+  .cursor { display: inline-block; background: var(--accent); vertical-align: baseline; }
 </style>
 </head>
 <body>
-<div class="hero"><img id="heroImg" alt=""></div>
-<div class="scrim" id="scrim"></div>
-<div class="logo" id="logo"></div>
-<div id="content"></div>
-<div class="foot" id="foot"></div>
+<div class="layer" id="bg"></div>
+<div class="layer" id="haze"></div>
+<div class="layer" id="deco"></div>
+<div class="layer" id="back"></div>
+<div class="layer" id="fg"></div>
+<div class="layer" id="front"></div>
+<div class="layer" id="post-grade"></div>
+<div class="layer" id="post-vig"></div>
+<div class="layer" id="post-grain"></div>
 
 <script>
-(function () {
-  const { config: C, size: S } = window.KV;
+(async function () {
+  const { config: C, size: S, auto: A = {} } = window.KV;
+  const warn = []; window.KV_WARN = warn;
   const W = S.w, H = S.h, ratio = W / H;
-  const portrait = ratio < 0.85, squareish = ratio >= 0.85 && ratio <= 1.2, ultrawide = ratio > 2.2;
+  const portrait = ratio < 0.85, square = ratio >= 0.85 && ratio <= 1.25, wide = ratio > 2.1;
   const pick = (k, d) => (S[k] !== undefined ? S[k] : (C[k] !== undefined ? C[k] : d));
-  let layout = pick('layout', 'L1');
-  if (squareish && (layout === 'L1' || layout === 'L3') && S.layout === undefined) layout = 'L2';
-  if (portrait && layout === 'L3') layout = 'L1';
+  const T = Object.assign({}, C.text || {}, S.text || {});
+  const fx = Object.assign({ grain: 0.08, vignette: 0.3, haze: 0.45, glow: 0.15, grade: 0.06 }, C.fx || {}, S.fx || {});
 
+  // ---------- 系统选择 ----------
+  let sys = pick('type_system', 'swiss');
+  if (square && S.type_system === undefined && sys === 'editorial') sys = 'swiss';
+  if (wide && sys === 'center') sys = 'swiss';
+  const side = pick('text_side', 'left');
   const theme = pick('theme', 'dark');
-  const P = Object.assign(
-    theme === 'dark'
-      ? { bg: '#0A0716', text: '#FFFFFF', muted: 'rgba(255,255,255,.62)' }
-      : { bg: '#FFFFFF', text: '#0B0B12', muted: 'rgba(11,11,18,.55)' },
-    C.palette || {}
-  );
+
+  // ---------- 颜色：主题默认 < 主图取色 < 用户指定 ----------
+  const base = theme === 'dark'
+    ? { bg: '#07060F', text: '#FFFFFF', muted: 'rgba(255,255,255,.58)', rule: 'rgba(255,255,255,.22)', rule_strong: 'rgba(255,255,255,.6)', accent: '#C8FF6A', glow: '#8CF5D2', shade: '#07060F' }
+    : { bg: '#F6F7FA', text: '#0B0B12', muted: 'rgba(11,11,18,.55)', rule: 'rgba(11,11,18,.18)', rule_strong: 'rgba(11,11,18,.55)', accent: '#2F6BFF', glow: '#7A4DFF', shade: '#F6F7FA' };
+  const P = Object.assign(base, pick('color_from_hero', true) ? (A.palette || {}) : {}, C.palette || {}, S.palette || {});
+  if (theme === 'light' && A.palette && pick('color_from_hero', true) && !(C.palette || {}).shade) P.shade = base.shade;
+
+  // ---------- 字体 ----------
   const F = Object.assign({
-    cjk: '"Noto Sans SC","Noto Sans CJK SC","Source Han Sans SC","MiSans","PingFang SC"',
-    latin: '"Inter","Space Grotesk","Manrope","Helvetica Neue",Arial',
-    mono: '"JetBrains Mono","IBM Plex Mono",monospace'
+    cjk: '"HarmonyOS Sans SC","Alibaba PuHuiTi 3.0","MiSans","Noto Sans SC","Noto Sans CJK SC"',
+    latin: '"Inter","Geist","Helvetica Neue",Arial',
+    display: '"Inter Display","Inter"',
+    serif_cjk: '"Noto Serif SC","Noto Serif CJK SC","Source Han Serif SC"',
+    serif_latin: '"Instrument Serif","Fraunces","Lora"',
+    mono: '"JetBrains Mono","Geist Mono","IBM Plex Mono","DejaVu Sans Mono"'
   }, C.fonts || {});
-
-  const u = Math.min(W, H) / 100;
-  const m = Math.min(W, H) * (portrait ? 0.08 : (ratio > 1.6 ? 0.07 : 0.075));
-  const root = document.documentElement.style;
-  root.setProperty('--u', u + 'px');
-  root.setProperty('--m', m + 'px');
-  root.setProperty('--bg', P.bg); root.setProperty('--text', P.text); root.setProperty('--muted', P.muted);
-  root.setProperty('--font-cjk', F.cjk); root.setProperty('--font-latin', F.latin); root.setProperty('--font-mono', F.mono);
-  if (pick('h1_scale')) root.setProperty('--h1', pick('h1_scale'));
-  document.body.classList.add(layout);
-
-  // 主图：focal 决定裁切中心，zoom 以 focal 为原点放大
-  const hero = pick('hero', null);
-  const img = document.getElementById('heroImg');
-  if (hero) {
-    const [fx, fy] = pick('focal', [0.5, 0.5]);
-    img.src = hero;
-    img.style.objectPosition = (fx * 100) + '% ' + (fy * 100) + '%';
-    const z = pick('zoom', 1);
-    if (z !== 1) { img.style.transformOrigin = (fx * 100) + '% ' + (fy * 100) + '%'; img.style.transform = 'scale(' + z + ')'; }
-  } else {
-    img.remove();
-  }
-
-  const T = C.text || {};
-  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const lines = v => (Array.isArray(v) ? v : (v ? [v] : [])).map(l => '<span class="line">' + esc(l) + '</span>').join('');
-
-  // logo
-  const logo = document.getElementById('logo');
-  if (T.logo_image) logo.innerHTML = '<img src="' + esc(T.logo_image) + '">';
-  else if (T.logo_text) logo.innerHTML = '<span>' + esc(T.logo_text) + '</span>';
-
-  // 底注
-  document.getElementById('foot').textContent = T.footnote || '';
-
-  // 文字块
-  const content = document.getElementById('content');
-  const block = document.createElement('div');
-  block.className = 'block';
-  const parts = [];
-  if (T.eyebrow) parts.push('<div class="eyebrow">' + esc(T.eyebrow) + '</div>');
-  if (T.h1) parts.push('<div class="h1">' + lines(T.h1) + '</div>');
-  if (T.h2) parts.push('<div class="h2">' + esc(T.h2) + '</div>');
-  if (T.slogan && !ultrawide && !(layout === 'L2' && squareish && S.slogan !== true)) parts.push('<div class="slogan">' + lines(T.slogan) + '</div>');
-  const metaItems = (T.meta || []);
-  if (metaItems.length && layout !== 'L3') parts.push('<div class="meta">' + metaItems.map(x => '<span>' + esc(x) + '</span>').join('') + '</div>');
-  block.innerHTML = parts.join('');
-  content.appendChild(block);
-
-  const bs = block.style;
-  const scrim = document.getElementById('scrim');
-  const useScrim = pick('scrim', false);
-  const sc = P.bg;
-  const fade = (dir, a, b) => 'linear-gradient(' + dir + ',' + sc + ' ' + a + '%,' + sc + 'cc ' + ((a + b) / 2) + '%,transparent ' + b + '%)';
-
-  if (layout === 'L1' && !portrait) {
-    bs.left = m + 'px'; bs.top = '50%'; bs.transform = 'translateY(-55%)'; bs.maxWidth = (ultrawide ? 50 : 42) + '%';
-    if (useScrim) scrim.style.background = fade('90deg', 0, 55);
-  } else if ((layout === 'L1' || layout === 'L3') && portrait) {
-    bs.left = m + 'px'; bs.right = m + 'px'; bs.top = (H * 0.13) + 'px';
-    if (useScrim) scrim.style.background = fade('180deg', 0, 55);
-  } else if (layout === 'L2') {
-    bs.left = m + 'px'; bs.right = m + 'px'; bs.bottom = (m * 1.6) + 'px'; bs.alignItems = 'center'; bs.textAlign = 'center';
-    document.getElementById('foot').style.display = 'none';
-    if (useScrim) scrim.style.background = fade('0deg', 0, 50);
-  } else if (layout === 'L3') {
-    bs.left = m + 'px'; bs.top = (m * 2.2) + 'px'; bs.maxWidth = '60%';
-    const rail = document.createElement('div');
-    rail.className = 'rail';
-    rail.style.right = m + 'px'; rail.style.top = (H * 0.28) + 'px'; rail.style.bottom = (H * 0.12) + 'px'; rail.style.width = (W * 0.24) + 'px';
-    const r = T.rail || {};
-    const cells = [];
-    if (r.label) cells.push('<div class="cell mid">' + esc(r.label) + '</div>');
-    if (r.sub) cells.push('<div class="cell" style="font-size:calc(var(--u)*2.4);color:var(--muted)">' + esc(r.sub) + '</div>');
-    const date = r.date || metaItems[0];
-    if (date) cells.push('<div class="cell big">' + esc(date) + '</div>');
-    rail.innerHTML = '<div class="rule"></div>' + cells.join('<div class="rule" style="opacity:.25"></div>') + '<div class="rule"></div>';
-    content.appendChild(rail);
-    if (useScrim) scrim.style.background = 'linear-gradient(270deg,' + sc + ' 0%,' + sc + 'cc 25%,transparent 40%)';
-  } else if (layout === 'L4') {
-    bs.left = m + 'px'; bs.right = m + 'px'; bs.top = '50%'; bs.transform = 'translateY(-50%)';
-    if (useScrim) scrim.style.background = sc + '99';
-  }
-
-  // 自动缩字：H1 超出文字块宽度时逐步缩小，避免溢出
-  document.fonts.ready.then(() => {
-    const h1 = block.querySelector('.h1');
-    const limit = (layout === 'L1' && !portrait) ? W * (ultrawide ? 0.5 : 0.42) : W - 2 * m;
-    if (h1) {
-      h1.style.width = 'max-content';
-      let s = parseFloat(getComputedStyle(h1).fontSize), guard = 0;
-      while (h1.getBoundingClientRect().width > limit + 1 && guard++ < 40) { s *= 0.95; h1.style.fontSize = s + 'px'; }
-      h1.style.width = '';
+  const files = (C.fonts && C.fonts.files) || {};
+  const css = [];
+  for (const [fam, src] of Object.entries(files)) {
+    const list = Array.isArray(src) ? src : [src];
+    for (const it of list) {
+      const o = typeof it === 'string' ? { src: it } : it;
+      css.push(`@font-face{font-family:"${fam}";src:url("${o.src}");font-weight:${o.weight || '100 900'};font-style:${o.style || 'normal'};font-display:block}`);
     }
-    document.body.setAttribute('data-ready', '1');
-  });
+  }
+  if (css.length) { const st = document.createElement('style'); st.textContent = css.join('\n'); document.head.appendChild(st); }
+  const google = (C.fonts && C.fonts.google) || [];
+  if (google.length) {
+    const l = document.createElement('link'); l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?' + google.map(g => 'family=' + encodeURIComponent(g).replace(/%20/g, '+').replace(/%3A/g, ':').replace(/%40/g, '@').replace(/%3B/g, ';').replace(/%2C/g, ',')).join('&') + '&display=block';
+    document.head.appendChild(l);
+    await new Promise(r => { l.onload = r; l.onerror = () => { warn.push('Google Fonts 加载失败（离线？），回退到本地字体'); r(); }; setTimeout(r, 8000); });
+  }
+  const R = document.documentElement.style;
+  const setv = (k, v) => R.setProperty(k, v);
+  setv('--bg', P.bg); setv('--text', P.text); setv('--muted', P.muted); setv('--rule', P.rule); setv('--rule-strong', P.rule_strong);
+  setv('--accent', P.accent); setv('--glow', P.glow);
+  setv('--cjk', F.cjk); setv('--latin', F.latin); setv('--display', F.display); setv('--mono', F.mono);
+  setv('--serif-cjk', F.serif_cjk); setv('--serif-latin', F.serif_latin);
+  // 中文块里的拉丁字符用英文字体渲染（中英混排）
+  setv('--latin-for-cjk', F.latin.split(',')[0]);
+
+  // ---------- 网格 ----------
+  const u = Math.min(W, H) / 100;
+  const tiny = Math.min(W, H) < 600;           // 小尺寸：隐藏点缀小字
+  const m = Math.min(W, H) * (portrait ? 0.08 : 0.07);
+  const cols = portrait ? 6 : 12, g = 1.6 * u;
+  const colW = (W - 2 * m - (cols - 1) * g) / cols;
+  const cx = i => m + i * (colW + g);           // 第 i 栏左边缘
+  const span = n => n * colW + (n - 1) * g;
+  const px = v => v + 'px';
+  setv('--tk', px(2.2 * u));
+  const small = Math.max(1.25 * u, 10);       // 点缀小字下限 10px
+
+  // ---------- 图层：主图 / 前景 ----------
+  const [fx0, fy0] = pick('focal', [0.5, 0.5]); const zoom = pick('zoom', 1);
+  const placeImg = (layer, src) => {
+    if (!src) return null;
+    const img = new Image(); img.src = src;
+    img.style.objectPosition = (fx0 * 100) + '% ' + (fy0 * 100) + '%';
+    if (zoom !== 1) { img.style.transformOrigin = img.style.objectPosition; img.style.transform = `scale(${zoom})`; }
+    document.getElementById(layer).appendChild(img);
+    return new Promise(r => { img.onload = r; img.onerror = () => { warn.push('图片加载失败: ' + src); r(); }; });
+  };
+  const hero = pick('hero', null), heroFg = pick('hero_fg', null);
+  await Promise.all([placeImg('bg', hero), placeImg('fg', heroFg)]);
+
+  // ---------- 工具 ----------
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const arr = v => (Array.isArray(v) ? v : (v ? [v] : []));
+  const lines = v => arr(v).map(l => `<span class="line">${esc(l)}</span>`).join('');
+  const el = (layer, cls, html, style) => {
+    const d = document.createElement('div'); d.className = 't ' + (cls || ''); d.innerHTML = html;
+    Object.assign(d.style, style || {}); document.getElementById(layer).appendChild(d); return d;
+  };
+  const rule = (x, y, w, strong) => { const d = document.createElement('div'); d.className = 'rule'; Object.assign(d.style, { left: px(x), top: px(y), width: px(w) }); if (strong) d.style.background = 'var(--rule-strong)'; document.getElementById('deco').appendChild(d); return d; };
+  const vrule = (x, y, h) => { const d = document.createElement('div'); d.className = 'vrule'; Object.assign(d.style, { left: px(x), top: px(y), height: px(h) }); document.getElementById('deco').appendChild(d); };
+  const tick = (x, y) => { const d = document.createElement('div'); d.className = 'tick'; Object.assign(d.style, { left: px(x - 1.1 * u), top: px(y - 1.1 * u) }); document.getElementById('deco').appendChild(d); };
+  const box = e => e.getBoundingClientRect();
+  // 等比缩放到最大宽度
+  const fitW = (e, maxW) => { let s = parseFloat(e.style.fontSize || getComputedStyle(e).fontSize), i = 0; while (box(e).width > maxW + 0.5 && i++ < 60) { s *= 0.96; e.style.fontSize = px(s); } };
+  // 精确填满宽度（巨字用）
+  const fillW = (e, targetW) => { const s = parseFloat(getComputedStyle(e).fontSize); const w = box(e).width; e.style.fontSize = px(s * targetW / w); };
+  const titleFill = (e, mode) => {
+    if (mode === 'gradient') {
+      Object.assign(e.style, { backgroundImage: `linear-gradient(100deg, ${P.text} 0%, ${P.glow} 55%, ${P.accent} 100%)`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' });
+    } else if (mode === 'hero' && hero) {
+      Object.assign(e.style, { backgroundImage: `linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,.18)), url("${hero}")`, backgroundSize: `${W}px ${H}px`, backgroundAttachment: 'fixed', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' });
+    } else if (mode === 'outline') {
+      Object.assign(e.style, { color: 'transparent', WebkitTextStroke: `${Math.max(1, 0.12 * u)}px ${P.text}` });
+    } else if (mode === 'accent') {
+      e.style.color = P.accent;
+    }
+    if (fx.glow > 0 && theme === 'dark') e.style.textShadow = `0 0 ${0.8 * u}px ${hexA(P.glow, fx.glow * 0.5)}, 0 0 ${7 * u}px ${hexA(P.glow, fx.glow * 0.45)}`;
+  };
+  function hexA(hex, a) { const h = hex.replace('#', ''); const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; }
+
+  // info 单元：[{k,v}]，兼容旧版 meta 数组
+  const info = (T.info && T.info.length) ? T.info : arr(T.meta).map(v => ({ k: '', v }));
+  const cellHTML = (it, valCls, kSize, vSize) =>
+    (it.k && !tiny ? `<span class="k mono caps muted" style="font-size:${px(kSize)};letter-spacing:.18em;margin-bottom:${px(0.9 * u)}">${esc(it.k)}</span>` : '') +
+    `<span class="v ${valCls}" style="font-size:${px(vSize)};font-weight:500;letter-spacing:-0.005em">${esc(it.v)}</span>`;
+
+  // 顶栏：logo + 编号 + 坐标 + 细线
+  function topbar(opt = {}) {
+    const y = m;
+    if (T.logo_image) el('front', '', `<img src="${esc(T.logo_image)}" style="height:${px(4.6 * u)};display:block">`, { left: px(m), top: px(y - 0.6 * u) });
+    else if (T.logo_text) el('front', '', esc(T.logo_text), { left: px(m), top: px(y), fontSize: px(2.4 * u), fontWeight: 700, letterSpacing: '-0.01em' });
+    if (tiny) return y;
+    const right = [T.index, T.coords].filter(Boolean);
+    if (right.length) {
+      const r = el('front', 'mono caps muted', right.map(esc).join('<span style="opacity:.5;padding:0 1.2em">/</span>'), { top: px(y + 0.5 * u), fontSize: px(small), letterSpacing: '.16em' });
+      r.style.left = px(W - m - box(r).width);
+    }
+    if (opt.rule !== false) rule(m, y + 5.2 * u, W - 2 * m);
+    return y + 5.2 * u;
+  }
+  function bottomInfo(x0, wTotal, yBottom, opt = {}) {
+    if (!info.length) return yBottom;
+    const n = info.length, gapc = opt.gap || 3 * u;
+    const vSize = opt.vSize || (tiny ? 3.4 * u : 2.5 * u);
+    const cells = info.map(it => el('front', 'cell', cellHTML(it, it.cjk === false ? '' : 'cjk', small, vSize), {}));
+    let hMax = Math.max(...cells.map(c => box(c).height));
+    const top = yBottom - hMax;
+    if (opt.columns) {
+      let prevR = -1e9; cells.forEach((c, i) => { const want = opt.columns[i] !== undefined ? opt.columns[i] : x0 + i * (wTotal / n); const x = Math.max(want, prevR + 3 * u); c.style.left = px(x); c.style.top = px(top); prevR = x + box(c).width; });
+    } else {
+      let x = x0; cells.forEach(c => { c.style.left = px(x); c.style.top = px(top); x += box(c).width + gapc; });
+    }
+    if (opt.rule !== false && !tiny) rule(x0, top - 2 * u, wTotal);
+    return top - 2 * u;
+  }
+  function footnote(x, yBottom, align) {
+    if (!T.footnote || tiny) return;
+    const f = el('front', 'mono caps muted', esc(T.footnote), { fontSize: px(small), letterSpacing: '.32em' });
+    f.style.top = px(yBottom - box(f).height);
+    f.style.left = px(align === 'right' ? W - m - box(f).width : x);
+    const fb = box(f);
+    const hit = [...document.querySelectorAll('#front .cell')].some(c => { const b = box(c); return !(b.right + 2 * u < fb.left || b.left > fb.right || b.bottom < fb.top || b.top > fb.bottom); });
+    if (hit) f.remove();
+  }
+
+  // ---------- 排版系统 ----------
+  const SYS = {};
+
+  SYS.swiss = function () {
+    const yTop = topbar();
+    const nCols = portrait ? 6 : (wide ? 5 : (square ? 8 : 6));
+    const x0 = side === 'right' && !portrait ? cx(cols - nCols) : m;
+    const maxW = span(nCols);
+    const blk = [];
+    if (T.kicker && !tiny) blk.push(el('front', 'mono caps', `<span style="color:var(--accent)">[ ${esc(T.kicker_no || '01')} ]</span>&nbsp;&nbsp;${esc(T.kicker)}`, { fontSize: px(small * 1.05), letterSpacing: '.2em' }));
+    const h1 = el('front', 'cjk', lines(T.h1), { fontSize: px((portrait ? 13 : 12.5) * u * pick('h1_scale', 1)), fontWeight: 900, lineHeight: 1.04, letterSpacing: '-0.025em' });
+    titleFill(h1, pick('title_fill', 'solid')); fitW(h1, maxW); blk.push(h1);
+    if (T.en) { const en = el('front', 'disp', lines(T.en), { fontSize: px(parseFloat(h1.style.fontSize) * 0.5), fontWeight: 200, lineHeight: 1.05, letterSpacing: '-0.02em' }); fitW(en, maxW); blk.push(en); }
+    if (T.slogan && !wide) blk.push(el('front', 'cjk', lines(T.slogan), { fontSize: px(3.1 * u), fontWeight: 500, lineHeight: 1.35, letterSpacing: '0.01em', whiteSpace: 'nowrap' }));
+    // 纵向布局：标题块从网格的 1/4 处开始
+    const gaps = blk.map((b, i) => i === 0 ? 0 : (b.classList.contains('disp') ? 1.2 * u : (i === blk.length - 1 && T.slogan ? 4.8 * u : 2.4 * u)));
+    let y = portrait ? H * 0.15 : Math.max(yTop + 5 * u, H * 0.23);
+    blk.forEach((b, i) => { y += gaps[i]; b.style.left = px(x0); b.style.top = px(y); y += box(b).height; });
+    const yb = portrait ? H - m * 1.2 : H - m;
+    const ruleTop = bottomInfo(x0, portrait ? W - 2 * m : span(nCols), yb, { columns: portrait ? null : info.map((_, i) => x0 + i * (colW + g) * (nCols / Math.max(info.length, 1)) ) });
+    if (!tiny && !portrait) { tick(x0, ruleTop); tick(x0 + span(nCols), ruleTop); }
+    footnote(m, yb, 'right');
+    return { hazeDir: portrait ? 'top' : side };
+  };
+
+  SYS.bleed = function () {
+    const yTop = topbar();
+    // 底部：中文活动名 + 信息
+    const yb = portrait ? H - m * 1.2 : H - m;
+    const infoTop = bottomInfo(portrait ? m : cx(6), portrait ? W - 2 * m : span(6), yb, { columns: portrait ? null : info.map((_, i) => cx(6 + i * 2)) });
+    const h1 = el('front', 'cjk', lines(T.h1), { fontSize: px((portrait ? 7.5 : 6.2) * u * pick('h1_scale', 1)), fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.02em' });
+    fitW(h1, portrait ? W - 2 * m : span(5));
+    const h1Top = portrait ? infoTop - 3 * u - box(h1).height : yb - box(h1).height;
+    h1.style.left = px(m); h1.style.top = px(h1Top);
+    let bandBottom = portrait ? h1Top : Math.min(infoTop, h1Top);
+    if (T.en && !tiny) {
+      const en = el('front', 'mono caps muted', esc(arr(T.en).join(' ')), { fontSize: px(small), letterSpacing: '.24em' });
+      en.style.left = px(m); en.style.top = px(h1Top - 1.8 * u - box(en).height);
+      bandBottom = Math.min(bandBottom, h1Top - 1.8 * u - box(en).height);
+    }
+    // 顶部：slogan
+    let bandTop = yTop;
+    if (T.slogan && !tiny) {
+      const sl = el('front', 'cjk', esc(arr(T.slogan).join('')), { fontSize: px(2.4 * u), fontWeight: 500, letterSpacing: '0.06em' });
+      sl.style.left = px(m); sl.style.top = px(yTop + 2.4 * u); bandTop = yTop + 2.4 * u + box(sl).height;
+    }
+    // 中间带：巨字。宽度撑满（可出血），高度不超过中间带
+    const mark = T.mark || (T.en ? arr(T.en)[0] : '');
+    const mk = el('back', 'disp', esc(mark), { fontSize: px(40 * u), fontWeight: pick('mark_weight', 800), lineHeight: 0.74, letterSpacing: '-0.05em' });
+    fillW(mk, pick('mark_width', portrait ? 0.98 : 1.04) * W);
+    const bandH = (bandBottom - bandTop) - 4 * u;
+    if (box(mk).height > bandH) { mk.style.fontSize = px(parseFloat(mk.style.fontSize) * bandH / box(mk).height); }
+    const mb = box(mk);
+    mk.style.left = px((W - mb.width) / 2 + pick('mark_dx', 0) * W);
+    mk.style.top = px(bandTop + 2 * u + (bandH - mb.height) * pick('mark_y', 0.5));
+    const fill = pick('title_fill', 'fade');
+    if (fill === 'fade') {
+      // 巨字下沿淡出到环境里（像立在雾/水中），不是一块硬贴片
+      Object.assign(mk.style, { backgroundImage: `linear-gradient(180deg, ${hexA(P.text === '#FFFFFF' ? '#FFFFFF' : P.text, 0.95)} 0%, ${hexA(P.glow, 0.75)} 55%, ${hexA(P.accent, 0.0)} 100%)`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' });
+    } else titleFill(mk, fill);
+    if (pick('mark_opacity', 1) !== 1) mk.style.opacity = pick('mark_opacity', 1);
+    return { hazeDir: 'bottom' };
+  };
+
+  SYS.editorial = function () {
+    topbar({ rule: false });
+    const x0 = side === 'right' && !portrait ? cx(6) : m;
+    const vertical = pick('vertical', false) && !portrait;
+    const h1 = el('front', 'serif-cjk', lines(T.h1), { fontSize: px(11 * u * pick('h1_scale', 1)), fontWeight: 900, lineHeight: 1.12, letterSpacing: '0.02em' });
+    if (vertical) { h1.style.writingMode = 'vertical-rl'; h1.style.lineHeight = 1.05; }
+    titleFill(h1, pick('title_fill', 'solid'));
+    if (!vertical) fitW(h1, portrait ? W - 2 * m : span(6));
+    let en = null;
+    if (T.en) { en = el('front', 'serif', lines(T.en), { fontSize: px(parseFloat(h1.style.fontSize) * 0.78), fontStyle: 'italic', fontWeight: 400, lineHeight: 0.98, letterSpacing: '-0.01em' }); fitW(en, portrait ? W - 2 * m : span(7)); }
+    if (vertical) {
+      h1.style.left = px(x0); h1.style.top = px(H * 0.2);
+      if (en) { en.style.left = px(x0 + box(h1).width + 3 * u); en.style.top = px(H * 0.2 + box(h1).height - box(en).height); }
+    } else {
+      let y = portrait ? H * 0.14 : H * 0.2;
+      h1.style.left = px(x0); h1.style.top = px(y); y += box(h1).height + 1.6 * u;
+      if (en) { en.style.left = px(x0 + (portrait ? 0 : span(1) + g)); en.style.top = px(y); y += box(en).height; }
+      if (T.slogan && !wide) { const s = el('front', 'cjk', lines(T.slogan), { fontSize: px(2.8 * u), fontWeight: 400, lineHeight: 1.6, letterSpacing: '0.08em' }); s.style.left = px(x0 + (portrait ? 0 : span(1) + g)); s.style.top = px(y + 3.5 * u); }
+    }
+    // 底部版权页式信息
+    const parts = [T.issue, ...info.map(i => i.v)].filter(Boolean);
+    const yb = portrait ? H - m * 1.2 : H - m;
+    if (parts.length) {
+      const f = el('front', 'cjk', parts.map(esc).join('<span style="opacity:.45;padding:0 .9em">—</span>'), { fontSize: px(tiny ? 3 * u : 2.1 * u), fontWeight: 400, letterSpacing: '0.06em' });
+      f.style.left = px(m); f.style.top = px(yb - box(f).height);
+      if (!tiny) rule(m, yb - box(f).height - 2.2 * u, W - 2 * m);
+    }
+    return { hazeDir: portrait ? 'top' : side };
+  };
+
+  SYS.terminal = function () {
+    const mono = 'mono';
+    const yTop = topbar({ rule: false });
+    const x0 = side === 'right' && !portrait ? cx(6) : m;
+    const maxW = portrait ? W - 2 * m : span(wide ? 5 : 6);
+    const fs = Math.max(1.7 * u, 11);
+    let y = portrait ? H * 0.14 : H * 0.22;
+    const ln = [];
+    const cmd = T.cmd || '';
+    if (cmd && !tiny) { const c = el('front', mono, `<span style="color:var(--accent)">$</span> ${esc(cmd)}`, { fontSize: px(fs) }); c.style.left = px(x0); c.style.top = px(y); y += box(c).height + 2.4 * u; ln.push(c); }
+    const h1 = el('front', 'cjk', lines(T.h1), { fontSize: px(11.5 * u * pick('h1_scale', 1)), fontWeight: 900, lineHeight: 1.04, letterSpacing: '-0.02em' });
+    titleFill(h1, pick('title_fill', 'solid')); fitW(h1, maxW);
+    h1.style.left = px(x0); h1.style.top = px(y);
+    // 光标块跟在最后一行后面
+    const last = h1.lastElementChild; const cs = parseFloat(h1.style.fontSize);
+    last.insertAdjacentHTML('beforeend', `<span class="cursor" style="width:${px(cs * 0.42)};height:${px(cs * 0.86)};margin-left:${px(cs * 0.12)};transform:translateY(${px(cs * 0.06)})"></span>`);
+    y += box(h1).height + 2.4 * u;
+    if (T.en) { const e = el('front', mono + ' muted', `<span style="opacity:.6">// </span>${esc(arr(T.en).join(' '))}`, { fontSize: px(fs * 1.15) }); e.style.left = px(x0); e.style.top = px(y); y += box(e).height + 3.2 * u; }
+    if (!tiny && info.length) {
+      const yaml = info.map(it => `<span class="line"><span style="color:var(--glow)">${esc((it.k || 'info').toLowerCase())}</span><span class="muted">:</span> <span style="color:var(--accent)">"</span><span class="cjk" style="font-family:var(--mono),var(--cjk)">${esc(it.v)}</span><span style="color:var(--accent)">"</span></span>`).join('');
+      const b = el('front', mono, yaml, { fontSize: px(fs * 1.1), lineHeight: 1.75 }); b.style.left = px(x0); b.style.top = px(y);
+      // 行号
+      const nums = info.map((_, i) => `<span class="line">${String(i + 1).padStart(2, '0')}</span>`).join('');
+      const nn = el('front', mono + ' muted', nums, { fontSize: px(fs * 1.1), lineHeight: 1.75, opacity: .5 });
+      nn.style.left = px(x0 - box(nn).width - 2 * u); nn.style.top = px(y);
+      if (x0 - box(nn).width - 2 * u < 0) nn.remove();
+    }
+    // 底部状态栏
+    const yb = portrait ? H - m * 1.2 : H - m * 0.9;
+    const segs = [pick('mode_label', 'NORMAL'), T.status || (T.footnote || ''), ...info.map(i => i.v)].filter(Boolean);
+    const bar = el('front', mono, segs.map((s, i) => `<span style="padding:0 ${px(1.4 * u)};${i === 0 ? 'background:var(--accent);color:' + P.bg + ';font-weight:700' : ''}">${esc(s)}</span>`).join('<span class="muted">│</span>'), { fontSize: px(tiny ? 2.6 * u : Math.max(1.4 * u, 10)), lineHeight: 2, letterSpacing: '.04em' });
+    bar.style.left = px(m); bar.style.top = px(yb - box(bar).height);
+    if (!tiny) rule(m, yb - box(bar).height - 0.6 * u, W - 2 * m);
+    return { hazeDir: portrait ? 'top' : side };
+  };
+
+  SYS.center = function () {
+    topbar({ rule: !square });
+    const h1 = el('front', 'cjk', lines(T.h1), { fontSize: px(11 * u * pick('h1_scale', 1)), fontWeight: 900, lineHeight: 1.04, letterSpacing: '-0.02em', textAlign: 'center' });
+    titleFill(h1, pick('title_fill', 'solid')); fitW(h1, W - 2 * m);
+    const parts = [h1];
+    if (T.en) { const en = el('front', 'disp caps', esc(arr(T.en).join(' ')), { fontSize: px(2.4 * u), fontWeight: 400, letterSpacing: '.42em', textAlign: 'center' }); parts.push(en); }
+    const line = info.map(i => esc(i.v)).join('<span style="opacity:.45;padding:0 .8em">·</span>');
+    if (line) parts.push(el('front', 'cjk', line, { fontSize: px(2.6 * u), fontWeight: 500, textAlign: 'center' }));
+    const gaps = [0, 2.2 * u, 3.6 * u];
+    const total = parts.reduce((s, p, i) => s + box(p).height + (gaps[i] || 0), 0);
+    let y = H - m * 1.3 - total;
+    parts.forEach((p, i) => { y += gaps[i] || 0; p.style.left = px((W - box(p).width) / 2); p.style.top = px(y); y += box(p).height; });
+    return { hazeDir: 'bottom' };
+  };
+
+  // 字体就绪后再排版（尺寸测量依赖字体）
+  try { await document.fonts.ready; } catch (e) {}
+  const res = (SYS[sys] || SYS.swiss)();
+
+  // ---------- 字体缺失检测 ----------
+  const probe = fam => {
+    const c = document.createElement('canvas').getContext('2d'); const t = '永和Wg0@技术';
+    return ['monospace', 'serif'].some(b => { c.font = `72px ${b}`; const w0 = c.measureText(t).width; c.font = `72px ${fam}, ${b}`; return c.measureText(t).width !== w0; });
+  };
+  const used = { cjk: F.cjk, latin: F.latin, display: F.display, mono: F.mono };
+  if (sys === 'editorial') { used.serif_cjk = F.serif_cjk; used.serif_latin = F.serif_latin; }
+  for (const [role, stack] of Object.entries(used)) {
+    const first = stack.split(',')[0].trim();
+    const ok = stack.split(',').map(s => s.trim()).find(probe);
+    if (!probe(first)) warn.push(`字体角色 ${role} 的首选 ${first} 未加载，实际使用 ${ok || '系统默认'}`);
+  }
+
+  // ---------- 后期 ----------
+  const dir = res.hazeDir;
+  if (fx.haze > 0) {
+    const ang = { left: '90deg', right: '270deg', top: '180deg', bottom: '0deg' }[dir] || '90deg';
+    document.getElementById('haze').style.background = `linear-gradient(${ang}, ${hexA(P.shade, fx.haze)} 0%, ${hexA(P.shade, fx.haze * 0.55)} 30%, transparent 62%)`;
+  }
+  if (fx.grade > 0) document.getElementById('post-grade').style.background = hexA(P.glow, fx.grade);
+  if (fx.vignette > 0) document.getElementById('post-vig').style.background = `radial-gradient(ellipse at 50% 50%, transparent 55%, ${hexA(theme === 'dark' ? '#000000' : '#5a5a6a', fx.vignette)} 100%)`;
+  if (fx.grain > 0) {
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1.6 -0.3'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>`;
+    const gr = document.getElementById('post-grain');
+    gr.style.backgroundImage = `url("data:image/svg+xml;utf8,${svg.replace(/#/g, '%23').replace(/"/g, "'")}")`;
+    gr.style.opacity = Math.min(1, fx.grain * 4);
+  }
+  document.body.setAttribute('data-ready', '1');
 })();
 </script>
 </body>

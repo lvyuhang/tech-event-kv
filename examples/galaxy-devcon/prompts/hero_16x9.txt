@@ -1,0 +1,8 @@
+Wide cinematic shot from a low angle just above the water, 28mm lens, deep night. |
+A vast calm sea at night, the water perfectly still and glossy black, a thin low mist drifting over the surface, a faint violet afterglow along the distant horizon, a few stars. |
+Standing in the water stands a giant text cursor — a tall, slim vertical bar with softly rounded edges — made of luminous glass, glowing from within, lime yellow at the base shifting to cyan and soft violet at the top. |
+Its light spills across the water as a long shimmering path toward the camera; the base is submerged and the water around it glows; the bar is mirrored in the still sea; the low mist around it is lit green; a few out-of-focus specks of light float in the foreground. |
+The cursor is the only light source in the scene, cool violet ambient light from the sky, a subtle iridescent rim on its edges. |
+The cursor stands in the right 40% of the frame, its reflection reaching the bottom edge; the left 60% is open night sky above a wide stretch of dark still water with only faint haze. |
+Cinematic 3D render, physically based glass, subtle film grain, high dynamic range, deep blacks.
+Negative: text, letters, words, watermark, logo, UI, isolated object, plain background, sticker, lighthouse building, glowing brain, robot, earth globe, circuit board, cluttered, oversaturated, cheap 3D
