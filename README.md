@@ -39,6 +39,7 @@ scripts/
   placeholder.py            占位主图
   moodboard.py              参考图情绪板
   glyph_flow.py             生成式图层：真实代码字符组成的流 + 代码纹理
+  glass_lens.py             玻璃透镜后期：折射、阴影、焦散，透镜内外两种状态
 examples/galaxy-devcon/     完整示例（v0.3 全流程）：参考调研、概念推导、3 个方向的提示词、配置、主图、两轮评分
 ```
 
@@ -61,6 +62,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v0.5：玻璃透镜后期 glass_lens.py；lockup 增加 info_side / mark_weight / mark_tracking；真实品牌概念稿规则
 - v0.4：时代感与识别度规则（contemporary.md）、lockup 排版系统与纹理填充、生成式代码图层 glyph_flow.py、D9 风格；评分增加第 8 项
 - v0.3：参考调研步骤与情绪板脚本；按完整流程重做示例，并据此修正取色、巨字定位（mark_baseline）、竖版信息区等问题
 - v0.2：概念推导方法、场景式提示词与融合手法、字体库与排版系统、分层合成、审美评分、完整示例

@@ -68,6 +68,10 @@ python scripts/image_model.py --prompt-file prompts/hero_16x9.txt --ratio 16:9 -
 python scripts/glyph_flow.py --w 1920 --h 1080 --out heroes/flow_16x9 --path "..." --accent "#D4FF3A" --code src.txt
 ```
 
+**透镜后期**：概念是"看见 / 放大 / 预见"类时，用 `scripts/glass_lens.py` 在成品上合成一滴玻璃，透镜内外显示两种状态（见 contemporary.md 第四节）。
+
+**真实品牌**：可以为真实活动做概念稿，但要标注"非官方概念稿"，不使用对方 logo，不使用授权受限的品牌字体，未公布的日期写成占位并标注。
+
 拿到主图后用 Read 检查：拼写、乱码、俗套元素、融合质量（integration.md 第三节）。不合格就改提示词重生，不要硬用。
 
 ### 第 5 步：字体与排版系统

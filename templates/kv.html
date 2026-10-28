@@ -292,7 +292,7 @@
     const yTop = topbar();
     const mark = T.mark || arr(T.h1)[0].slice(0, 2);
     const isCJK = /[㐀-鿿]/.test(mark);
-    const mk = el('back', isCJK ? 'cjk' : 'disp', esc(mark), { fontSize: px(H * pick('mark_size', portrait ? 0.2 : 0.4)), fontWeight: 900, lineHeight: 0.86, letterSpacing: isCJK ? '-0.04em' : '-0.05em' });
+    const mk = el('back', isCJK ? 'cjk' : 'disp', esc(mark), { fontSize: px(H * pick('mark_size', portrait ? 0.2 : 0.4)), fontWeight: pick('mark_weight', 900), lineHeight: 0.86, letterSpacing: pick('mark_tracking', isCJK ? '-0.04em' : '-0.035em') });
     if (portrait) fillW(mk, W - 2 * m);
     else if (box(mk).width > W - 2 * m) fitW(mk, W - 2 * m);
     const fill = pick('mark_fill', 'texture'), texture = pick('mark_texture', null);
@@ -320,6 +320,7 @@
     }
     const yb = portrait ? H - m * 1.2 : H - m;
     if (portrait || square) bottomInfo(m, W - 2 * m, yb);
+    else if (pick('info_side', 'right') === 'left') bottomInfo(m, span(6), yb, { columns: info.map((_, i) => cx(i * 2)) });
     else bottomInfo(cx(6), span(6), yb, { columns: info.map((_, i) => cx(6 + i * 2)) });
     return { hazeDir: portrait ? 'both' : 'bottom' };
   };
