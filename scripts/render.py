@@ -35,7 +35,7 @@ def to_uri(p, base):
 def resolve_paths(cfg, base):
     cfg = json.loads(json.dumps(cfg))
     for holder in [cfg] + list(cfg.get("sizes", [])):
-        for k in ("hero", "hero_fg"):
+        for k in ("hero", "hero_fg", "mark_texture"):
             if holder.get(k):
                 holder[k] = to_uri(holder[k], base)
     t = cfg.get("text", {})

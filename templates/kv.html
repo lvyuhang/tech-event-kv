@@ -274,6 +274,43 @@
     return { hazeDir: 'bottom' };
   };
 
+  // lockup：一个巨大的品牌字（如"星河"）+ 全称锁定组合。巨字可用代码纹理填充，细节在大尺寸下撑得住
+  SYS.lockup = function () {
+    const yTop = topbar();
+    const mark = T.mark || arr(T.h1)[0].slice(0, 2);
+    const isCJK = /[㐀-鿿]/.test(mark);
+    const mk = el('back', isCJK ? 'cjk' : 'disp', esc(mark), { fontSize: px(H * pick('mark_size', portrait ? 0.2 : 0.4)), fontWeight: 900, lineHeight: 0.86, letterSpacing: isCJK ? '-0.04em' : '-0.05em' });
+    if (portrait) fillW(mk, W - 2 * m);
+    else if (box(mk).width > W - 2 * m) fitW(mk, W - 2 * m);
+    const fill = pick('mark_fill', 'texture'), texture = pick('mark_texture', null);
+    if (fill === 'texture' && texture) {
+      Object.assign(mk.style, { backgroundImage: `url("${texture}")`, backgroundSize: `${W}px ${H}px`, backgroundAttachment: 'fixed', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' });
+    } else titleFill(mk, fill === 'texture' ? 'solid' : fill);
+    const mb = box(mk);
+    const mx = side === 'right' && !portrait ? W - m - mb.width : m;
+    const my = portrait ? H * 0.14 : Math.max(yTop + 6 * u, H * pick('mark_top', 0.2));
+    mk.style.left = px(mx - mb.width * 0.012); mk.style.top = px(my);
+    // 锁定组合：巨字下方，左对齐到巨字
+    const restText = T.lockup || [arr(T.h1).join('').replace(mark, '')];
+    let y = my + mb.height + 2.2 * u;
+    const rest = el('front', 'cjk', lines(restText), { fontSize: px((portrait ? 6.4 : 5.6) * u), fontWeight: 900, letterSpacing: '0.02em', lineHeight: 1.1 });
+    rest.style.left = px(mx); rest.style.top = px(y);
+    if (T.en) {
+      const en = el('front', 'disp', esc(arr(T.en).join(' ')), { fontSize: px((portrait ? 6.4 : 5.6) * u), fontWeight: 200, letterSpacing: '-0.01em', lineHeight: 1.1 });
+      en.style.left = px(mx + box(rest).width + 2.4 * u); en.style.top = px(y + (box(rest).height - box(en).height) / 2);
+      if (box(en).right > W - m) { en.style.left = px(mx); en.style.top = px(y + box(rest).height + 0.6 * u); }
+    }
+    // slogan：写成一行代码注释，放在顶栏下
+    if (T.slogan && !tiny) {
+      const sl = el('front', 'mono', `<span style="color:var(--accent)">//</span> <span class="cjk" style="font-family:var(--mono),var(--cjk)">${esc(arr(T.slogan).join(''))}</span>`, { fontSize: px(Math.max(1.9 * u, 11)), letterSpacing: '0.04em' });
+      sl.style.left = px(mx); sl.style.top = px(yTop + 2.4 * u);
+    }
+    const yb = portrait ? H - m * 1.2 : H - m;
+    if (portrait || square) bottomInfo(m, W - 2 * m, yb);
+    else bottomInfo(cx(6), span(6), yb, { columns: info.map((_, i) => cx(6 + i * 2)) });
+    return { hazeDir: portrait ? 'both' : 'bottom' };
+  };
+
   SYS.editorial = function () {
     topbar({ rule: false });
     const x0 = side === 'right' && !portrait ? cx(6) : m;

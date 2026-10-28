@@ -12,6 +12,7 @@ description: 为程序/技术类运营活动（开发者大会、技术峰会、
 1. **隐喻直白**：拿到"AI 大会"就画神经网络。→ 第 2 步强制从"主张"出发、跨层联想、多手法发散、直白度分级。
 2. **主体与背景割裂**：主体像贴纸，背景像壁纸。→ 第 4 步用场景式提示词和七种融合手法；第 6 步用分层合成把文字也放进画面。
 3. **排版初级**：默认字体、从上往下堆。→ 第 5 步选字体配方和排版系统，渲染时检测字体是否真的加载。
+4. **执行老气、识别度低、大字简陋**：概念对了但画面像壁纸，巨字只是一块渐变。→ 第 3 步和第 7 步对照 `references/contemporary.md`：老气信号、可拥有的视觉装置、大字必须有细节。
 
 ## 硬规则
 
@@ -45,7 +46,7 @@ description: 为程序/技术类运营活动（开发者大会、技术峰会、
 6. 为每个入选概念写艺术指导
 
 ### 第 3 步：给用户选方向（停下等回复）
-附上情绪板。每个方向展示：主张、画面、和参考的关系（借了什么手法、避开了哪片红海）、为什么成立、直白度与得分、风格（`references/directions.md`）、配色 hex、排版系统、版式草图描述。可以引用 `references/case-studies.md` 说明。
+附上情绪板。每个方向还要说明它的**视觉装置**是什么（contemporary.md 第二节）。每个方向展示：主张、画面、和参考的关系（借了什么手法、避开了哪片红海）、为什么成立、直白度与得分、风格（`references/directions.md`）、配色 hex、排版系统、版式草图描述。可以引用 `references/case-studies.md` 说明。
 
 用户说"直接出"时，选总分最高的方向继续，并说明选择理由。
 
@@ -62,13 +63,18 @@ python scripts/image_model.py --prompt-file prompts/hero_16x9.txt --ratio 16:9 -
 ```
 未配置时把提示词交给用户，等用户把图发回来。主图回来之前，可以用 `scripts/placeholder.py` 生成占位图先确认版式。
 
+**生成式图层**（contemporary.md 第四节）：概念是"汇聚 / 流动 / 涌现"类，或想要图形化的当代风格时，用 `scripts/glyph_flow.py` 生成由真实代码字符组成的流，可以单独作为主图，也可以叠在生图主图上。每个尺寸单独生成，不要裁切：
+```bash
+python scripts/glyph_flow.py --w 1920 --h 1080 --out heroes/flow_16x9 --path "..." --accent "#D4FF3A" --code src.txt
+```
+
 拿到主图后用 Read 检查：拼写、乱码、俗套元素、融合质量（integration.md 第三节）。不合格就改提示词重生，不要硬用。
 
 ### 第 5 步：字体与排版系统
 读 `references/typography.md`。
 1. 按概念气质选**字体配方**（display / cjk / latin / mono）
 2. 准备字体：中文商用字体放进项目的 `fonts/` 目录并在 `fonts.files` 里登记；能联网时英文开源字体可以写进 `fonts.google`
-3. 选**排版系统**：`swiss`（默认）/ `bleed`（巨字穿插）/ `editorial` / `terminal` / `center`
+3. 选**排版系统**：`swiss`（默认）/ `lockup`（品牌字巨字 + 锁定组合，识别度最高）/ `bleed`（英文巨字穿插）/ `editorial` / `terminal` / `center`
 4. 填写 `text`：标题按语义手动分行；`info` 用"标签 + 值"；点缀信息只填真实的
 
 ### 第 6 步：合成与渲染
@@ -83,7 +89,7 @@ python scripts/render.py config.json --out out/
 尺寸表见 `references/sizes.md`，默认出核心套装。
 
 ### 第 7 步：自检与迭代
-读 `references/qa-checklist.md`：先过硬性检查，再做七维审美评分。**总分 < 26 或任一项 ≤ 2 分**时，按评分表找到最低分的维度，回到对应步骤修改。最多迭代 3 轮。
+读 `references/qa-checklist.md`：先过硬性检查，再做审美评分，然后回答 `references/contemporary.md` 第五节的四个问题。**总分 < 26 或任一项 ≤ 2 分**时，按评分表找到最低分的维度，回到对应步骤修改。最多迭代 3 轮。
 
 ## 交付物
 

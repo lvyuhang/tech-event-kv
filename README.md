@@ -2,14 +2,14 @@
 
 为程序 / 技术类运营活动（开发者大会、技术峰会、黑客松、发布会、AI 大会、技术沙龙）构思并产出 KV 主视觉物料的 agent skill。
 
-![示例](examples/galaxy-devcon/out/screen_bleed_1920x1080.jpg)
+![示例](examples/galaxy-devcon/out/screen_16x9_1920x1080.jpg)
 
 ## 思路
 
 - **参考调研**：联网检索本活动往届、同类活动和跨界作品，拆解手法，归纳红海清单和天花板，生成情绪板。
 - **概念先行**：从活动主张出发，经过三层联想和 10 种造境手法发散 ≥ 9 个概念，按直白度（L0–L3）和五维打分筛选，避免"AI = 神经网络"式的直译。
 - **场景式主图**：提示词先写世界再写主体，强制写主体与环境的互动（光的溢出、倒影、环境接触……），交给外部生图模型生成不含文字的主图。
-- **排版系统**：5 套排版系统（swiss / bleed / editorial / terminal / center）+ 字体配方库；渲染时检测字体是否真的加载。
+- **排版系统**：6 套排版系统（swiss / lockup / bleed / editorial / terminal / center）+ 字体配方库；渲染时检测字体是否真的加载。
 - **分层合成**：主图 → 雾 → 细线 → 巨字 → 前景抠图 → 文字 → 调色 / 暗角 / 颗粒。文字可以从主体后面穿过，颜色从主图取，颗粒同时覆盖图和字。
 - **审美自检**：硬性检查 + 七维审美评分，不达标按最低分维度回到对应步骤迭代。
 
@@ -24,7 +24,8 @@ references/
   directions.md             8 种视觉风格
   prompt-recipes.md         7 段式场景提示词
   integration.md            主体与背景融合：提示词手法 + 合成手段
-  typography.md             字体库、字体配方、5 套排版系统、微排版规则
+  typography.md             字体库、字体配方、6 套排版系统、微排版规则
+  contemporary.md           时代感（老气信号）、可拥有的视觉装置、大字细节、生成式图层
   sizes.md                  延展尺寸表
   qa-checklist.md           硬性检查 + 审美评分
   case-studies.md           参考案例拆解
@@ -37,6 +38,7 @@ scripts/
   cutout.py                 前景抠图（蒙版 / rembg / 亮度键）
   placeholder.py            占位主图
   moodboard.py              参考图情绪板
+  glyph_flow.py             生成式图层：真实代码字符组成的流 + 代码纹理
 examples/galaxy-devcon/     完整示例（v0.3 全流程）：参考调研、概念推导、3 个方向的提示词、配置、主图、两轮评分
 ```
 
@@ -59,6 +61,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v0.4：时代感与识别度规则（contemporary.md）、lockup 排版系统与纹理填充、生成式代码图层 glyph_flow.py、D9 风格；评分增加第 8 项
 - v0.3：参考调研步骤与情绪板脚本；按完整流程重做示例，并据此修正取色、巨字定位（mark_baseline）、竖版信息区等问题
 - v0.2：概念推导方法、场景式提示词与融合手法、字体库与排版系统、分层合成、审美评分、完整示例
 - v0.1：基础流程、单层排版模板
