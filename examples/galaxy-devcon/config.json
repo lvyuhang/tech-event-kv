@@ -1,23 +1,30 @@
 {
   "theme": "dark",
-  "type_system": "swiss",
-  "text_side": "left",
-  "hero": "heroes/hero_16x9.png",
-  "hero_fg": "heroes/hero_16x9_fg.png",
-  "focal": [
-    0.5,
-    0.5
-  ],
-  "color_from_hero": true,
+  "type_system": "lockup",
+  "hero": "heroes/v3/flow_16x9_hero.png",
+  "hero_fg": "heroes/v3/flow_16x9_fg.png",
+  "mark_texture": "heroes/v3/flow_16x9_texture.png",
+  "mark": "星河",
+  "mark_size": 0.4,
+  "mark_top": 0.21,
+  "color_from_hero": false,
+  "palette": {
+    "bg": "#06070A",
+    "shade": "#06070A",
+    "accent": "#D4FF3A",
+    "glow": "#D4FF3A",
+    "muted": "rgba(236,238,242,.55)",
+    "rule": "rgba(236,238,242,.16)",
+    "rule_strong": "rgba(236,238,242,.5)"
+  },
   "fx": {
-    "grain": 0.1,
-    "vignette": 0.28,
-    "haze": 0.42,
-    "glow": 0.12,
-    "grade": 0.05
+    "grain": 0.07,
+    "vignette": 0.18,
+    "haze": 0.35,
+    "glow": 0,
+    "grade": 0
   },
   "fonts": {
-    "files": {},
     "cjk": "\"HarmonyOS Sans SC\", \"Noto Sans SC\", \"Noto Sans CJK SC\"",
     "latin": "\"Inter\"",
     "display": "\"Inter Display\", \"Inter\"",
@@ -26,19 +33,17 @@
   "text": {
     "logo_text": "Galaxy Cloud",
     "index": "Nº 03",
-    "coords": "22.53°N 114.06°E",
-    "kicker": "Developer Conference",
-    "kicker_no": "03",
     "h1": [
       "星河开发者大会"
+    ],
+    "lockup": [
+      "开发者大会"
     ],
     "en": [
       "Galaxy DevCon 2026"
     ],
-    "mark": "GALAXY",
     "slogan": [
-      "每一行代码，",
-      "汇成星河"
+      "每一行代码，汇成星河"
     ],
     "info": [
       {
@@ -63,39 +68,33 @@
       "h": 1080
     },
     {
-      "name": "screen_bleed",
-      "w": 1920,
-      "h": 1080,
-      "type_system": "bleed",
-      "mark_baseline": 0.615,
-      "mark_width": 0.92,
-      "mark_opacity": 0.92,
-      "hero_fg": "heroes/hero_16x9_fg_galaxy.png"
-    },
-    {
       "name": "poster_9x16",
       "w": 1080,
       "h": 1920,
-      "hero": "heroes/hero_9x16.png",
-      "hero_fg": "heroes/hero_9x16_fg.png"
-    },
-    {
-      "name": "wechat_cover",
-      "w": 900,
-      "h": 383,
-      "focal": [
-        0.5,
-        0.55
-      ]
+      "hero": "heroes/v3/flow_9x16_hero.png",
+      "hero_fg": "heroes/v3/flow_9x16_fg.png",
+      "mark_texture": "heroes/v3/flow_9x16_texture.png",
+      "mark_top": 0.14
     },
     {
       "name": "square",
       "w": 1080,
       "h": 1080,
-      "focal": [
-        0.62,
-        0.5
-      ]
+      "mark_size": 0.3,
+      "hero": "heroes/v3/flow_1x1_hero.png",
+      "hero_fg": "heroes/v3/flow_1x1_fg.png",
+      "mark_texture": "heroes/v3/flow_1x1_texture.png",
+      "lockup_stack": true
+    },
+    {
+      "name": "wechat_cover",
+      "w": 900,
+      "h": 383,
+      "mark_size": 0.44,
+      "mark_top": 0.2,
+      "hero": "heroes/v3/flow_wechat_hero.png",
+      "hero_fg": "heroes/v3/flow_wechat_fg.png",
+      "mark_texture": "heroes/v3/flow_wechat_texture.png"
     }
   ]
 }

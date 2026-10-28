@@ -139,16 +139,29 @@
   const rule = (x, y, w, strong) => { const d = document.createElement('div'); d.className = 'rule'; Object.assign(d.style, { left: px(x), top: px(y), width: px(w) }); if (strong) d.style.background = 'var(--rule-strong)'; document.getElementById('deco').appendChild(d); return d; };
   const vrule = (x, y, h) => { const d = document.createElement('div'); d.className = 'vrule'; Object.assign(d.style, { left: px(x), top: px(y), height: px(h) }); document.getElementById('deco').appendChild(d); };
   const tick = (x, y) => { const d = document.createElement('div'); d.className = 'tick'; Object.assign(d.style, { left: px(x - 1.1 * u), top: px(y - 1.1 * u) }); document.getElementById('deco').appendChild(d); };
-  const box = e => e.getBoundingClientRect();
+  // 用 background-clip:text 填充的字需要额外的绘制内边距，否则笔画超出行框的部分会被切掉。
+  // box() 返回去掉这层内边距后的"墨迹框"，排版计算不受影响。
+  const PADY = 0.22, PADX = 0.1;
+  const box = e => {
+    const r = e.getBoundingClientRect();
+    if (!e.dataset || !e.dataset.clip) return r;
+    const fs = parseFloat(getComputedStyle(e).fontSize), py = PADY * fs, pxx = PADX * fs;
+    return { left: r.left + pxx, right: r.right - pxx, top: r.top + py, bottom: r.bottom - py, width: r.width - 2 * pxx, height: r.height - 2 * py };
+  };
+  const clipText = (e, styles) => {
+    Object.assign(e.style, styles, { WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+      padding: `${PADY}em ${PADX}em`, margin: `-${PADY}em -${PADX}em` });
+    e.dataset.clip = '1';
+  };
   // 等比缩放到最大宽度
   const fitW = (e, maxW) => { let s = parseFloat(e.style.fontSize || getComputedStyle(e).fontSize), i = 0; while (box(e).width > maxW + 0.5 && i++ < 60) { s *= 0.96; e.style.fontSize = px(s); } };
   // 精确填满宽度（巨字用）
   const fillW = (e, targetW) => { const s = parseFloat(getComputedStyle(e).fontSize); const w = box(e).width; e.style.fontSize = px(s * targetW / w); };
   const titleFill = (e, mode) => {
     if (mode === 'gradient') {
-      Object.assign(e.style, { backgroundImage: `linear-gradient(100deg, ${P.text} 0%, ${P.glow} 55%, ${P.accent} 100%)`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' });
+      clipText(e, { backgroundImage: `linear-gradient(100deg, ${P.text} 0%, ${P.glow} 55%, ${P.accent} 100%)` });
     } else if (mode === 'hero' && hero) {
-      Object.assign(e.style, { backgroundImage: `linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,.18)), url("${hero}")`, backgroundSize: `${W}px ${H}px`, backgroundAttachment: 'fixed', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' });
+      clipText(e, { backgroundImage: `linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,.18)), url("${hero}")`, backgroundSize: `${W}px ${H}px`, backgroundAttachment: 'fixed' });
     } else if (mode === 'outline') {
       Object.assign(e.style, { color: 'transparent', WebkitTextStroke: `${Math.max(1, 0.12 * u)}px ${P.text}` });
     } else if (mode === 'accent') {
@@ -268,7 +281,7 @@
     const fill = pick('title_fill', 'fade');
     if (fill === 'fade') {
       // 巨字下沿淡出到环境里（像立在雾/水中），不是一块硬贴片
-      Object.assign(mk.style, { backgroundImage: `linear-gradient(180deg, ${hexA(P.text === '#FFFFFF' ? '#FFFFFF' : P.text, 0.95)} 0%, ${hexA(P.glow, 0.75)} 55%, ${hexA(P.accent, 0.0)} 100%)`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' });
+      clipText(mk, { backgroundImage: `linear-gradient(180deg, ${hexA(P.text === '#FFFFFF' ? '#FFFFFF' : P.text, 0.95)} 0%, ${hexA(P.glow, 0.75)} 55%, ${hexA(P.accent, 0.0)} 100%)` });
     } else titleFill(mk, fill);
     if (pick('mark_opacity', 1) !== 1) mk.style.opacity = pick('mark_opacity', 1);
     return { hazeDir: 'bottom' };
@@ -284,7 +297,7 @@
     else if (box(mk).width > W - 2 * m) fitW(mk, W - 2 * m);
     const fill = pick('mark_fill', 'texture'), texture = pick('mark_texture', null);
     if (fill === 'texture' && texture) {
-      Object.assign(mk.style, { backgroundImage: `url("${texture}")`, backgroundSize: `${W}px ${H}px`, backgroundAttachment: 'fixed', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' });
+      clipText(mk, { backgroundImage: `url("${texture}")`, backgroundSize: `${W}px ${H}px`, backgroundAttachment: 'fixed' });
     } else titleFill(mk, fill === 'texture' ? 'solid' : fill);
     const mb = box(mk);
     const mx = side === 'right' && !portrait ? W - m - mb.width : m;
@@ -298,7 +311,7 @@
     if (T.en) {
       const en = el('front', 'disp', esc(arr(T.en).join(' ')), { fontSize: px((portrait ? 6.4 : 5.6) * u), fontWeight: 200, letterSpacing: '-0.01em', lineHeight: 1.1 });
       en.style.left = px(mx + box(rest).width + 2.4 * u); en.style.top = px(y + (box(rest).height - box(en).height) / 2);
-      if (box(en).right > W - m) { en.style.left = px(mx); en.style.top = px(y + box(rest).height + 0.6 * u); }
+      if (box(en).right > W - m || pick('lockup_stack', false)) { en.style.left = px(mx); en.style.top = px(y + box(rest).height + 0.6 * u); }
     }
     // slogan：写成一行代码注释，放在顶栏下
     if (T.slogan && !tiny) {

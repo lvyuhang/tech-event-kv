@@ -143,6 +143,12 @@ def main():
     CELL = max(4, int(5 * S))
     occ = np.zeros((H // CELL + 4, W // CELL + 4), bool)  # 占位网格：字符和片段互不重叠
 
+    EDGE = 10 * S
+
+    def inside(p, wpx, hpx):
+        # 字符和片段必须完整地在画面内：被画框切掉一半的字看起来像裁坏了
+        return EDGE < p[0] - wpx / 2 and p[0] + wpx / 2 < W - EDGE and EDGE < p[1] - hpx / 2 and p[1] + hpx / 2 < H - EDGE
+
     def free(p, wpx, hpx):
         x0, x1 = int((p[0] - wpx / 2) // CELL) + 2, int((p[0] + wpx / 2) // CELL) + 3
         y0, y1 = int((p[1] - hpx / 2) // CELL) + 2, int((p[1] + hpx / 2) // CELL) + 3
@@ -177,17 +183,23 @@ def main():
         rgba = tuple(int(v) for v in col) + (int(255 * alpha),)
         if t < 0.22 and rng.random() < 0.5:
             tok = tokens[ti % len(tokens)]
+            if not inside(p, size * 0.82 * 0.6 * len(tok), size * 0.82):
+                continue
             if not free(p, size * 0.82 * 0.6 * len(tok), size * 0.82):
                 continue
             ti += 1
             d.text(tuple(p), tok, font=F(size * 0.82), fill=rgba, anchor="mm")
         elif size > 8.5 * S:
+            if not inside(p, size * 0.62, size):
+                continue
             if not free(p, size * 0.62, size * 0.9):
                 continue
             ch = chars[ci % len(chars)]; ci += 1
             d.text(tuple(p), ch, font=F(size), fill=rgba, anchor="mm")
         else:
             r = max(0.7, size * 0.16)
+            if not inside(p, 2 * r, 2 * r):
+                continue
             d.ellipse([p[0] - r, p[1] - r, p[0] + r, p[1] + r], fill=rgba)
 
     # 光晕：只给汇聚段，散落的个体保持清晰
