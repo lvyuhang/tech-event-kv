@@ -2,10 +2,11 @@
 
 > 自动生成：`python scripts/library_index.py`。不要手改。
 
-共 5 条。
+共 6 条。
 
 | id | 判定 | 类型 | 品牌层级 | 手法 | 直白度 | 排版 | 总分 | 标签 |
 |---|---|---|---|---|---|---|---|---|
+| [2025-douyin-local-search](items/2025-douyin-local-search/note.md) | good | 商业产品通案 / 运营 | 大厂 | 机制实体化 | L1.5 | 左对齐大字 | — | 左文右图、连续主体、产品机制可视化、玻璃界面、蓝紫粉 |
 | [2025-gaoding-ai-partner](items/2025-gaoding-ai-partner/note.md) | good | 校园招聘 / 运营招募 | 大厂 |  | L1.5 | 其他 | — | 拟人角色、伸手、手写字、蓝白、校园、运营 |
 | [2025-kuaishou-kuaipin](items/2025-kuaishou-kuaipin/note.md) | good | 校园招聘 / 运营招募 | 大厂 |  | L1.5 | 其他 | — | 角色、毛绒、蓝绿、贴纸、校园、运营 |
 | [2026-douyin-campus](items/2026-douyin-campus/note.md) | good | 校园招聘 / 运营招募 | 大厂 |  | L1.5 | 其他 | — | 手、潮玩、蓝紫渐变、定制标题字、校园、运营 |
