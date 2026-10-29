@@ -1,0 +1,275 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"./three/build/three.module.js","three/addons/":"./three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const P = new URLSearchParams(location.search);
+const W = +(P.get('w')||2560), H = +(P.get('h')||1440);
+const renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true, alpha:true});
+renderer.setPixelRatio(1); renderer.setSize(W,H);
+renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.9;
+
+const camera = new THREE.PerspectiveCamera(30, W/H, 1, 200);
+camera.position.set(0, 2.5, 34); camera.lookAt(0, 0.8, 0);
+
+// ---------- lights
+const key = new THREE.DirectionalLight(0xfff6ec, 2.2); key.position.set(-10, 18, 16);
+key.castShadow = true; key.shadow.mapSize.set(2048,2048);
+Object.assign(key.shadow.camera,{left:-20,right:20,top:14,bottom:-12,near:1,far:60}); key.shadow.radius=6; key.shadow.bias=-0.0005;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0xc9b8ff, 1.4); rim.position.set(12, 6, -10); scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xdfe8ff, 0xf3eeff, 0.8));
+
+// ---------- helpers
+function canvasTex(w, h, draw, srgb=true){
+  const c = document.createElement('canvas'); c.width=w; c.height=h;
+  const g = c.getContext('2d'); draw(g, w, h);
+  const t = new THREE.CanvasTexture(c); if(srgb) t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8; return t;
+}
+function rr(g,x,y,w,h,r){ g.beginPath(); g.roundRect(x,y,w,h,r); }
+function label(text, w, h, {font='900 220px "Noto Sans CJK SC"', color='#fff', bg=null, px=1024, align='center'}={}){
+  const ph = Math.round(px*h/w);
+  const tex = canvasTex(px, ph, (g,cw,ch)=>{
+    if(bg){ g.fillStyle=bg; rr(g,0,0,cw,ch,ch*0.2); g.fill(); }
+    g.font=font; g.fillStyle=color; g.textAlign=align; g.textBaseline='middle';
+    g.fillText(text, align==='center'?cw/2:cw*0.06, ch*0.54);
+  });
+  return new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({map:tex, transparent:true, toneMapped:false, depthWrite:false}));
+}
+const phys = (o)=> new THREE.MeshPhysicalMaterial(o);
+function shadowAll(o){ o.traverse(m=>{ if(m.isMesh && !m.material.transparent){ m.castShadow=true; m.receiveShadow=true; } }); }
+function layerAll(o, l){ o.traverse(m=>m.layers.set(l)); }
+
+// ---------- background plane (gradient + checkerboard burst + pixel bits)
+{
+  const bgTex = canvasTex(3072, 1728, (g,w,h)=>{
+    const gr = g.createLinearGradient(0,0,0,h);
+    gr.addColorStop(0,'#BFD3FF'); gr.addColorStop(0.38,'#D7CCFF'); gr.addColorStop(0.72,'#EEF0FF'); gr.addColorStop(1,'#F8FAFF');
+    g.fillStyle=gr; g.fillRect(0,0,w,h);
+    // soft glows
+    const glow=(x,y,r,c)=>{const q=g.createRadialGradient(x,y,0,x,y,r);q.addColorStop(0,c);q.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=q;g.fillRect(0,0,w,h);};
+    glow(w*0.5,h*0.55,w*0.34,'rgba(255,255,255,0.7)');
+    glow(w*0.85,h*0.1,w*0.25,'rgba(170,150,255,0.35)');
+    glow(w*0.1,h*0.15,w*0.22,'rgba(120,170,255,0.30)');
+    // checkerboard burst (transparency grid)
+    g.save(); g.beginPath();
+    const cx=w*0.5, cy=h*0.18; const pts=14;
+    for(let i=0;i<=pts*2;i++){ const a=i/(pts*2)*Math.PI*2; const r=(i%2? 0.13:0.27+0.06*Math.sin(i*1.7))*w; const x=cx+Math.cos(a)*r*1.25, y=cy+Math.sin(a)*r*0.6; i?g.lineTo(x,y):g.moveTo(x,y); }
+    g.closePath(); g.clip();
+    const s=34; for(let y=0;y<h;y+=s) for(let x=0;x<w;x+=s){ if(((x/s)+(y/s))%2==0){ g.fillStyle='rgba(255,255,255,0.55)'; g.fillRect(x,y,s,s);} }
+    g.restore();
+    // pixel fragments
+    let seed=7; const rnd=()=> (seed=(seed*16807)%2147483647)/2147483647;
+    for(let i=0;i<70;i++){ const x=rnd()*w, y=rnd()*h*0.6; const sz=[14,22,30][Math.floor(rnd()*3)];
+      if(Math.abs(x-w/2)<w*0.3 && y>h*0.35) continue;
+      g.fillStyle = rnd()<0.6?'rgba(255,255,255,0.75)':'rgba(150,170,255,0.45)'; g.fillRect(Math.round(x/sz)*sz, Math.round(y/sz)*sz, sz, sz); }
+  });
+  const d = 34+40; const hh = 2*d*Math.tan(THREE.MathUtils.degToRad(15))*1.3;
+  const bg = new THREE.Mesh(new THREE.PlaneGeometry(hh*W/H, hh), new THREE.MeshBasicMaterial({map:bgTex, toneMapped:false}));
+  bg.position.set(0, 0.8+ (2.5-0.8)*(-40/34)*0, -40); bg.lookAt(camera.position); scene.add(bg);
+}
+
+// ---------- cartoon hand (palm up, pointing +x)
+const skin = phys({color:0xFFD6BE, roughness:0.5, sheen:0.6, sheenColor:new THREE.Color(0xffb69a), sheenRoughness:0.5, clearcoat:0.15, clearcoatRoughness:0.6});
+function makeHand(sleeveHex, patch, mirror=false){
+  const g = new THREE.Group();
+  const palm = new THREE.Mesh(new RoundedBoxGeometry(2.3,0.85,2.15,5,0.4), skin); g.add(palm);
+  const zs=[-0.8,-0.27,0.27,0.8], L1=[0.75,0.92,0.88,0.68], L2=[0.6,0.7,0.66,0.52], R=[0.25,0.28,0.28,0.26];
+  zs.forEach((z,i)=>{
+    const f = new THREE.Group(); f.position.set(1.0,0.12,z); f.rotation.z=0.10+i*0.02; f.rotation.y=(i-1.5)*-0.05;
+    const p = new THREE.Mesh(new THREE.CapsuleGeometry(R[i],L1[i],8,16), skin); p.rotation.z=-Math.PI/2; p.position.x=L1[i]/2+0.15; f.add(p);
+    const j = new THREE.Group(); j.position.x=L1[i]+0.15; j.rotation.z=0.42; f.add(j);
+    const d = new THREE.Mesh(new THREE.CapsuleGeometry(R[i]*0.96,L2[i],8,16), skin); d.rotation.z=-Math.PI/2; d.position.x=L2[i]/2+0.1; j.add(d);
+    g.add(f);
+  });
+  const t = new THREE.Group(); t.position.set(0.35,0.2,1.0); t.rotation.set(0.35,-0.45,0.25);
+  const t1 = new THREE.Mesh(new THREE.CapsuleGeometry(0.31,0.6,8,16), skin); t1.rotation.z=-Math.PI/2; t1.position.x=0.4; t.add(t1);
+  const tj = new THREE.Group(); tj.position.x=0.8; tj.rotation.z=0.3; t.add(tj);
+  const t2 = new THREE.Mesh(new THREE.CapsuleGeometry(0.29,0.45,8,16), skin); t2.rotation.z=-Math.PI/2; t2.position.x=0.3; tj.add(t2);
+  g.add(t);
+  const wrist = new THREE.Mesh(new THREE.CylinderGeometry(0.78,0.84,1.6,32), skin); wrist.rotation.z=Math.PI/2; wrist.position.x=-1.6; g.add(wrist);
+  const fabric = phys({color:sleeveHex, roughness:0.88, sheen:1, sheenColor:new THREE.Color(0xffffff), sheenRoughness:0.6});
+  const ribTex = canvasTex(64,512,(c,w,h)=>{ for(let y=0;y<h;y+=16){ c.fillStyle=(y/16)%2?'#808080':'#ffffff'; c.fillRect(0,y,w,16);} }, false);
+  ribTex.wrapS=ribTex.wrapT=THREE.RepeatWrapping; ribTex.repeat.set(1,4);
+  const cuffMat = fabric.clone(); cuffMat.bumpMap = ribTex; cuffMat.bumpScale = 3;
+  const cuff = new THREE.Mesh(new THREE.CylinderGeometry(1.12,1.12,1.1,48), cuffMat); cuff.rotation.z=Math.PI/2; cuff.position.x=-2.7; g.add(cuff);
+  const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.45,16,48), fabric); sleeve.rotation.z=Math.PI/2; sleeve.position.x=-3.25-8; g.add(sleeve);
+  // fold rings
+  [-5.2,-7.6].forEach(x=>{ const r=new THREE.Mesh(new THREE.TorusGeometry(1.34,0.12,12,48), fabric); r.rotation.y=Math.PI/2; r.position.x=x; g.add(r); });
+  if(patch){ const pm = label(patch.text, 1.7, 0.66, {font:'900 150px "Noto Sans CJK SC"', color:patch.fg, bg:patch.bg, px:900});
+    pm.position.set(-4.4, 1.52, 0.15); pm.rotation.x=-Math.PI/2; if(mirror) pm.scale.x=-1; g.add(pm); }
+  shadowAll(g); return g;
+}
+// left: community hand (white sleeve, </> patch), offering
+const handL = makeHand(0xF4F6FF, {text:'</> 开源社区', fg:'#2F6BFF', bg:'#FFFFFF'});
+handL.scale.setScalar(1.25); handL.position.set(-4.6, 5.0, 0); handL.rotation.set(1.0, -0.18, 0.12); scene.add(handL);
+// right: student hand (Peiyang blue hoodie, TJU 1895), receiving
+const handR = makeHand(0x2F6BFF, {text:'TJU 1895', fg:'#FFFFFF', bg:'#FFB020'}, true);
+handR.scale.set(-1.25,1.25,1.25); handR.position.set(4.9, 4.7, 0); handR.rotation.set(1.0, 0.18, -0.08); scene.add(handR);
+
+// ---------- keycap factory
+function keycap({w=1.9,h=1.3,d=1.9, color=0x2F6BFF, text='', glass=false, font='900 300px "Inter Display","Inter"', fg='#ffffff', emissive=null}){
+  const g = new THREE.Group();
+  const mat = glass ? phys({color, transmission:1, thickness:1.4, ior:1.45, roughness:0.08, clearcoat:1, attenuationColor:new THREE.Color(color), attenuationDistance:2.5, specularIntensity:1})
+                    : phys({color, roughness:0.35, clearcoat:1, clearcoatRoughness:0.15, sheen:0.2});
+  const body = new THREE.Mesh(new RoundedBoxGeometry(w,h,d,5,0.32), mat); g.add(body);
+  const top = new THREE.Mesh(new RoundedBoxGeometry(w*0.82,0.25,d*0.82,4,0.12), mat); top.position.y=h/2-0.02; g.add(top);
+  if(emissive){ const core=new THREE.Mesh(new RoundedBoxGeometry(w*0.55,h*0.5,d*0.55,3,0.15), new THREE.MeshBasicMaterial({color:emissive, toneMapped:false})); g.add(core); }
+  if(text){ const l = label(text, w*0.8, w*0.8*0.5, {font, color:fg, px:800}); l.rotation.x=-Math.PI/2; l.position.y=h/2+0.12; g.add(l);
+            const f = label(text, w*0.7, w*0.7*0.5, {font, color:fg, px:800}); f.position.z=d/2+0.005; f.material.opacity=0.0; }
+  if(!glass) shadowAll(g); return g;
+}
+
+// hero keycap "add" (glass + glowing core)
+const hero = keycap({w:2.1,h:1.5,d:2.1,color:0xB8D2FF,text:'add',glass:true,emissive:0x9ED0FF, fg:'#123DB8'});
+hero.scale.setScalar(1.15); hero.position.set(-1.5, 5.75, 1.6); hero.rotation.set(0.6, 0.45, -0.15); scene.add(hero);
+// glow sprite
+function glowSprite(color, size, op=0.9){ const t=canvasTex(256,256,(g,w,h)=>{const q=g.createRadialGradient(128,128,0,128,128,128);q.addColorStop(0,color);q.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=q;g.fillRect(0,0,w,h);});
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, transparent:true, opacity:op, depthWrite:false, toneMapped:false, blending:THREE.AdditiveBlending})); s.scale.set(size,size,1); return s; }
+const hg = glowSprite('rgba(170,210,255,0.7)', 6, 0.45); hg.position.copy(hero.position).add(new THREE.Vector3(0,0,-1)); scene.add(hg);
+
+// sparkles (4-point stars)
+const sparkTex = canvasTex(256,256,(g,w,h)=>{ g.translate(128,128); g.fillStyle='#fff'; g.beginPath();
+  for(let i=0;i<8;i++){ const a=i*Math.PI/4, r=i%2?18:120; g.lineTo(Math.cos(a)*r, Math.sin(a)*r);} g.closePath(); g.fill(); });
+function spark(x,y,z,s,col=0xffffff){ const m=new THREE.Sprite(new THREE.SpriteMaterial({map:sparkTex,color:col,transparent:true,depthWrite:false,toneMapped:false})); m.position.set(x,y,z); m.scale.set(s,s,1); scene.add(m); return m; }
+spark(-2.6,8.1,1,0.9); spark(1.1,8.0,1,0.6,0xFFE680); spark(0.9,4.6,2,0.5); spark(-3.2,7.4,2,0.4,0xFFE680);
+spark(-9.5,4.0,0,0.7); spark(9.0,5.2,0,0.6,0xFFE680); spark(14.2,0.2,0,0.5); spark(-13.0,-2.8,0,0.5,0xFFE680); spark(7.6,-2.2,0,0.45);
+// dotted pass trail from keycap toward right hand
+for(let i=0;i<9;i++){ const t=i/8; const x=0.6+t*2.4, y=7.1+Math.sin(t*Math.PI)*0.9-t*0.9; const d=new THREE.Mesh(new THREE.SphereGeometry(0.09-0.004*i,12,12), new THREE.MeshBasicMaterial({color:0xffffff,toneMapped:false})); d.position.set(x,y,1.2); scene.add(d); }
+
+// ---------- code window (left)
+{
+  const g = new THREE.Group();
+  const glass = phys({color:0xF4F7FF, transmission:0.85, thickness:0.6, roughness:0.28, ior:1.4, clearcoat:1});
+  const body = new THREE.Mesh(new RoundedBoxGeometry(6.4,4.2,0.45,5,0.22), glass); g.add(body);
+  const frame = new THREE.Mesh(new RoundedBoxGeometry(6.6,4.4,0.3,5,0.26), phys({color:0xD9DEEA, metalness:1, roughness:0.22})); frame.position.z=-0.12; g.add(frame);
+  const screen = canvasTex(1600,1050,(c,w,h)=>{
+    c.fillStyle='rgba(255,255,255,0.92)'; rr(c,0,0,w,h,60); c.fill();
+    c.fillStyle='#EEF2FF'; rr(c,0,0,w,150,{upperLeft:60,upperRight:60}); c.fill();
+    ['#FF6B6B','#FFC94D','#4FDDAA'].forEach((k,i)=>{c.fillStyle=k;c.beginPath();c.arc(90+i*70,75,22,0,7);c.fill();});
+    c.font='700 44px "DejaVu Sans Mono"'; c.fillStyle='#8A93B5'; c.fillText('add_custom.cpp', 330, 90);
+    const lines=[
+      [['#B0B7CC','1 '],['#7B5CFF','extern '],['#2F6BFF','"C" '],['#7B5CFF','__global__']],
+      [['#B0B7CC','2 '],['#7B5CFF','__aicore__ '],['#1D2440','void ']],
+      [['#B0B7CC','3 '],['#E5484D','add_custom'],['#1D2440','(x, y, z) {']],
+      [['#B0B7CC','4 '],['#1D2440','  op.Process();']],
+      [['#B0B7CC','5 '],['#1D2440','}']],
+      [['#B0B7CC','6 '],['#16A86B','// my first operator :)']],
+    ];
+    c.font='700 62px "DejaVu Sans Mono"';
+    lines.forEach((ln,i)=>{ let x=80; ln.forEach(([col,s])=>{ c.fillStyle=col; c.fillText(s,x,270+i*120); x+=c.measureText(s).width; }); });
+    c.fillStyle='#2F6BFF'; c.fillRect(80+c.measureText('6 // my first operator :)').width+10, 270+5*120-52, 30, 66);
+  });
+  const sc = new THREE.Mesh(new THREE.PlaneGeometry(6.0,3.94), new THREE.MeshBasicMaterial({map:screen, transparent:true, toneMapped:false}));
+  sc.position.z=0.24; g.add(sc);
+  g.position.set(-12.2, 1.4, -1); g.rotation.set(-0.08, 0.38, 0.06); scene.add(g); shadowAll(frame);
+  // CANN keycaps on tray
+  const tray = new THREE.Group();
+  const base = new THREE.Mesh(new RoundedBoxGeometry(6.0,0.7,2.0,5,0.3), phys({color:0xE3E7F2, metalness:1, roughness:0.25})); tray.add(base);
+  const cols=[0x2F6BFF,0x3E8BF5,0x46B5D8,0x4FDDAA];
+  'CANN'.split('').forEach((ch,i)=>{ const k=keycap({w:1.25,h:0.9,d:1.25,color:cols[i],text:ch,font:'900 420px "Inter Display","Inter"'}); k.position.set(-2.1+i*1.4,0.7,0); tray.add(k); });
+  tray.position.set(-12.4,-3.2,0.5); tray.rotation.set(0.55,0.32,0.04); shadowAll(tray); scene.add(tray);
+}
+
+// ---------- pixel cursor
+function voxels(rows, map, s){ const g=new THREE.Group(); const geo=new RoundedBoxGeometry(s,s,s*1.2,2,s*0.18);
+  const mats={}; for(const k in map) mats[k]=phys({color:map[k], roughness:0.4, clearcoat:0.6});
+  rows.forEach((r,y)=>[...r].forEach((ch,x)=>{ if(map[ch]){ const m=new THREE.Mesh(geo,mats[ch]); m.position.set(x*s,-y*s,0); g.add(m);} })); shadowAll(g); return g; }
+const cursor = voxels(['K','KK','KWK','KWWK','KWWWK','KWWWWK','KWWWWWK','KWWWWKKK','KWKWWK','KK KWWK','K  KWWK','    KK'],{K:0x1D2440,W:0xffffff},0.2);
+cursor.position.set(-9.6,-3.0,2.2); cursor.rotation.set(0.1,0.3,-0.25); scene.add(cursor);
+// pixel </> (top-right)
+const tagv = voxels([
+  '  B      B   B  ','  B     B     B ',' B      B      B','B      B       B',' B     B      B ','  B   B      B  '],{B:0x2F6BFF},0.24);
+tagv.position.set(4.6,-6.6,-2); tagv.rotation.set(0.15,-0.35,-0.1); scene.add(tagv);
+
+// ---------- Merged badge (right)
+{
+  const g = new THREE.Group();
+  const b = new THREE.Mesh(new RoundedBoxGeometry(4.4,1.55,0.7,6,0.6), phys({color:0x2FCF8E, roughness:0.18, clearcoat:1, clearcoatRoughness:0.05})); g.add(b);
+  const l = label('✓ Merged', 3.9, 1.2, {font:'800 230px "Inter Display","Inter","DejaVu Sans"', color:'#ffffff', px:1100}); l.position.z=0.37; g.add(l);
+  const pr = label('PR #1', 1.6, 0.7, {font:'800 200px "Inter Display","Inter"', color:'#1D2440', bg:'#FFFFFF', px:600}); pr.position.set(1.8,1.05,0.4); pr.rotation.z=0.12; g.add(pr);
+  g.position.set(12.4, 3.0, 0); g.rotation.set(0.1,-0.4,-0.08); shadowAll(b); scene.add(g);
+}
+// ---------- glass AI chip (right)
+{
+  const g = new THREE.Group();
+  const circuit = canvasTex(1024,1024,(c,w,h)=>{ c.fillStyle='#071A55'; c.fillRect(0,0,w,h);
+    c.strokeStyle='rgba(120,190,255,0.9)'; c.lineWidth=6; let s=3; const r=()=> (s=(s*16807)%2147483647)/2147483647;
+    for(let i=0;i<60;i++){ let x=r()*w, y=r()*h; c.beginPath(); c.moveTo(x,y); for(let k=0;k<4;k++){ r()<0.5? x+= (r()-0.5)*300 : y+=(r()-0.5)*300; c.lineTo(x,y);} c.stroke(); c.fillStyle='#BFE3FF'; c.beginPath(); c.arc(x,y,9,0,7); c.fill(); }
+    const q=c.createRadialGradient(w/2,h/2,0,w/2,h/2,w*0.32); q.addColorStop(0,'rgba(220,240,255,1)'); q.addColorStop(0.4,'rgba(90,160,255,0.9)'); q.addColorStop(1,'rgba(40,90,255,0)'); c.fillStyle=q; c.fillRect(0,0,w,h);
+    c.fillStyle='#ffffff'; c.font='900 120px "Inter Display","Inter"'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('NPU', w/2, h/2);
+  });
+  const core = new THREE.Mesh(new THREE.PlaneGeometry(2.6,2.6), new THREE.MeshBasicMaterial({map:circuit, toneMapped:false})); core.rotation.x=-Math.PI/2; core.position.y=0.0; g.add(core);
+  const shell = new THREE.Mesh(new RoundedBoxGeometry(3.4,0.7,3.4,5,0.25), phys({color:0xE6F0FF, transmission:1, thickness:0.8, roughness:0.05, ior:1.5, clearcoat:1})); shell.position.y=0.08; g.add(shell);
+  const pinM = phys({color:0xD8DDE8, metalness:1, roughness:0.2});
+  for(let i=0;i<7;i++){ const o=-1.35+i*0.45; [[o,1.85,0],[o,-1.85,0],[1.85,o,1],[-1.85,o,1]].forEach(([a,b,rot])=>{ const p=new THREE.Mesh(new RoundedBoxGeometry(0.22,0.18,0.5,2,0.06),pinM); if(rot){p.position.set(a,-0.1,b);p.rotation.y=Math.PI/2;} else p.position.set(a,-0.1,b); g.add(p); }); }
+  g.position.set(13.2,-2.3,0); g.rotation.set(0.95,-0.5,0.15); scene.add(g);
+  const cg = glowSprite('rgba(120,180,255,0.9)', 6, 0.6); cg.position.set(13.2,-2.1,-1); scene.add(cg);
+}
+// matmul keycap (lower right), softmax (lower left back)
+const mk = keycap({w:2.0,h:1.4,d:2.0,color:0xC6B4FF,text:'matmul',font:'800 190px "Inter Display","Inter"', fg:'#3B2A99'}); mk.position.set(10.4,-5.6,1); mk.rotation.set(0.7,-0.5,0.2); scene.add(mk);
+const sk = keycap({w:1.6,h:1.1,d:1.6,color:0xFFD84D,text:'softmax',font:'800 170px "Inter Display","Inter"', fg:'#6B4A00'}); sk.position.set(-6.6,-7.0,-2); sk.rotation.set(0.6,0.5,-0.25); scene.add(sk);
+
+// ---------- plush star
+function starShape(R=1, r=0.5){ const s=new THREE.Shape(); for(let i=0;i<10;i++){ const a=Math.PI/2+i*Math.PI/5, rad=i%2?r:R; const x=Math.cos(a)*rad, y=Math.sin(a)*rad; i?s.lineTo(x,y):s.moveTo(x,y);} s.closePath(); return s; }
+function plushStar(size,color){ const geo=new THREE.ExtrudeGeometry(starShape(size,size*0.52),{depth:size*0.35,bevelEnabled:true,bevelThickness:size*0.32,bevelSize:size*0.22,bevelSegments:8,curveSegments:4}); geo.center();
+  const m=new THREE.Mesh(geo, phys({color, roughness:0.95, sheen:1, sheenColor:new THREE.Color(0xffffff), sheenRoughness:0.35})); m.castShadow=true; return m; }
+const st1 = plushStar(1.15,0xFFD84D); st1.position.set(-14.0,-4.6,1.5); st1.rotation.set(0.2,0.5,0.3); scene.add(st1);
+const st2 = plushStar(0.55,0xFFD84D); st2.position.set(6.8,8.0,-2); st2.rotation.set(0.3,-0.4,-0.2); scene.add(st2);
+const st3 = plushStar(0.45,0x4FDDAA); st3.position.set(-7.4,7.6,-3); st3.rotation.set(0.2,0.3,0.4); scene.add(st3);
+
+// ---------- FOREGROUND (layer 1): campus card, notebook, small star
+const FG = new THREE.Group(); scene.add(FG);
+{
+  const card = canvasTex(1200,760,(c,w,h)=>{
+    c.fillStyle='#ffffff'; rr(c,0,0,w,h,60); c.fill();
+    const gr=c.createLinearGradient(0,0,w,0); gr.addColorStop(0,'#2F6BFF'); gr.addColorStop(1,'#6E8CFF'); c.fillStyle=gr; rr(c,0,0,w,210,{upperLeft:60,upperRight:60}); c.fill();
+    c.fillStyle='#fff'; c.font='900 92px "Noto Sans CJK SC"'; c.fillText('天津大学',70,135);
+    c.font='800 52px "Inter Display","Inter"'; c.fillText('TJU · 1895',w-380,130);
+    c.fillStyle='#E6ECFF'; rr(c,70,270,280,360,30); c.fill(); c.fillStyle='#B8C6F5'; c.beginPath(); c.arc(210,400,70,0,7); c.fill(); c.beginPath(); c.ellipse(210,580,120,80,0,Math.PI,0); c.fill();
+    c.fillStyle='#1D2440'; c.font='900 68px "Noto Sans CJK SC"'; c.fillText('学生卡',420,350);
+    c.fillStyle='#8A93B5'; c.font='700 44px "Noto Sans CJK SC"'; c.fillText('CANN 开发者俱乐部 · 成员',420,440);
+    c.fillStyle='#2F6BFF'; c.font='800 48px "DejaVu Sans Mono"'; c.fillText('ID 0000001',420,530);
+    for(let i=0;i<22;i++){ c.fillStyle='#1D2440'; c.fillRect(420+i*26,580,i%3?8:16,70); }
+  });
+  const g=new THREE.Group();
+  const b=new THREE.Mesh(new RoundedBoxGeometry(4.6,2.92,0.14,4,0.07), phys({color:0xffffff, roughness:0.3, clearcoat:1})); g.add(b);
+  const f=new THREE.Mesh(new THREE.PlaneGeometry(4.6,2.92), new THREE.MeshBasicMaterial({map:card, transparent:true, toneMapped:false})); f.position.z=0.075; g.add(f);
+  g.scale.setScalar(0.85); g.position.set(13.3,-6.0,2); g.rotation.set(-0.3,-0.45,0.18); scene.add(g); shadowAll(b);
+}
+{
+  const g=new THREE.Group();
+  const lines = canvasTex(800,1000,(c,w,h)=>{ c.fillStyle='#FFFFFF'; c.fillRect(0,0,w,h); c.strokeStyle='#C9D6FF'; c.lineWidth=5; for(let y=120;y<h;y+=70){c.beginPath();c.moveTo(50,y);c.lineTo(w-50,y);c.stroke();}
+    c.fillStyle='#2F6BFF'; c.font='700 64px "DejaVu Sans Mono"'; c.fillText('add(x,y)',70,260); c.fillStyle='#FF7A59'; c.font='900 60px "Noto Sans CJK SC"'; c.fillText('第一个算子！',70,400); });
+  const pm = phys({color:0xffffff, roughness:0.8, map:lines});
+  const cover = phys({color:0x2F6BFF, roughness:0.6});
+  const c1=new THREE.Mesh(new RoundedBoxGeometry(3.4,0.12,4.3,3,0.05),cover); c1.position.set(-1.75,0,0); c1.rotation.z=0.12; g.add(c1);
+  const c2=new THREE.Mesh(new RoundedBoxGeometry(3.4,0.12,4.3,3,0.05),cover); c2.position.set(1.75,0,0); c2.rotation.z=-0.12; g.add(c2);
+  const p1=new THREE.Mesh(new RoundedBoxGeometry(3.2,0.28,4.1,3,0.08),pm); p1.position.set(-1.65,0.22,0); p1.rotation.z=0.12; g.add(p1);
+  const p2=new THREE.Mesh(new RoundedBoxGeometry(3.2,0.28,4.1,3,0.08),pm); p2.position.set(1.65,0.22,0); p2.rotation.z=-0.12; g.add(p2);
+  g.position.set(-13.2,-7.2,8); g.rotation.set(1.05,0.35,-0.2); FG.add(g);
+}
+{ const s=plushStar(0.7,0xFF8FB1); s.position.set(-5.2,-8.0,10); s.rotation.set(0.4,0.3,0.6); FG.add(s); }
+layerAll(FG, 1);
+
+// ---------- render passes
+const mode = P.get('pass')||'main';
+if(mode==='main'){ camera.layers.set(0); }
+else { camera.layers.set(1); scene.children.forEach(o=>{ if(o.isMesh && o.material.map && o.position.z<-30) o.visible=false; }); key.layers.enableAll(); renderer.setClearColor(0x000000,0); }
+key.layers.enableAll(); rim.layers.enableAll();
+scene.traverse(o=>{ if(o.isLight) o.layers.enableAll(); });
+renderer.render(scene, camera);
+window.DONE = true;
+</script></body></html>
