@@ -20,6 +20,8 @@
 ```
 SKILL.md                    主流程与硬规则
 references/
+  brief-analysis.md         需求分析：九个问题、风格翻译、验收清单、待确认问题（第 1 步关卡）
+  genres.md                 活动类型与视觉惯例、各类型评分权重
   brief.md                  brief 字段、活动类型 → 默认调性
   research.md               参考调研：范围、来源、检索词、拆解表、红海清单、版权边界
   concept.md                概念推导：主张、三层联想、造境手法、直白度、打分、艺术指导
@@ -70,6 +72,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v1.0：需求分析前置为关卡（brief-analysis.md）；活动类型与视觉惯例（genres.md），评分按类型调权；风格板关卡；运营类标题字设计；需求验收清单作为第一道自检；经验 L19–L22
 - v0.9：路线 G（程序化 3D 场景 + 摄影后期）、photo_post.py；硬规则 0（交付位图，不受实现手段限制）；天大示例升级为场景版
 - v0.8：主图路线 F（矢量插画代码直出）与天津大学 CANN 校园活动示例；经验 L16–L17
 - v0.7：SKILL.md 重写为统一结构（主图路线表、排版系统表、硬规则 7 条）；经验库 lessons.md；设计资料库 library/ 与 library_index.py
