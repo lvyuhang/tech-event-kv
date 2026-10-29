@@ -72,6 +72,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v1.9：运营类两种主流视觉语言（3D 潮玩 / 平面模块拼贴）；天大双方向：B 方向代码直出成品，A 方向整张海报提示词；资料库新增钉钉生态大会
 - v1.8：运营 / 校园类改为"调性优先、叙事轻量"（genres A 优先级；concept 5.5 轻量版）；经验 L31
 - v1.7：AI 感信号与对策（contemporary.md 第六节）：分别生成单个素材再合成、加设计层、压泛光、统一视角；经验 L29
 - v1.6：机制主体的三个陷阱（术语、无焦点、没有人）；道具自检新增外行 / 焦点 / 字数测试；经验 L27

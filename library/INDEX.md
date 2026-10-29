@@ -2,10 +2,11 @@
 
 > 自动生成：`python scripts/library_index.py`。不要手改。
 
-共 7 条。
+共 8 条。
 
 | id | 判定 | 类型 | 品牌层级 | 手法 | 直白度 | 排版 | 总分 | 标签 |
 |---|---|---|---|---|---|---|---|---|
+| [2023-dingtalk-ecosystem](items/2023-dingtalk-ecosystem/note.md) | good | 生态大会 / 开发者大会 | 大厂 |  | L1 | 白色标题块 + 镂空切字超粗黑体 | — | 模块拼贴、网格、平面图形、像素图标、镂空切字、高饱和撞色、彩色玻璃 |
 | [2025-douyin-local-search](items/2025-douyin-local-search/note.md) | good | 商业产品通案 / 运营 | 大厂 | 机制实体化 | L1.5 | 左对齐大字 | — | 左文右图、连续主体、产品机制可视化、玻璃界面、蓝紫粉 |
 | [2025-gaoding-ai-partner](items/2025-gaoding-ai-partner/note.md) | good | 校园招聘 / 运营招募 | 大厂 |  | L1.5 | 其他 | — | 拟人角色、伸手、手写字、蓝白、校园、运营 |
 | [2025-kuaishou-kuaipin](items/2025-kuaishou-kuaipin/note.md) | good | 校园招聘 / 运营招募 | 大厂 |  | L1.5 | 其他 | — | 角色、毛绒、蓝绿、贴纸、校园、运营 |
