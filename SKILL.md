@@ -123,6 +123,14 @@ python scripts/render.py config.json --out out/
 
 ## 交付物
 
+**每个方向最终交两份文件**（用户确认的标准交付）：
+1. **设计 Brief**（`templates/brief-template.md`）：活动、受众、文案层级、视觉方向（参考 + 迁移说明）、画面构成表（每个元素和主题、受众的关系）、配色色值、标题字、材质与光、版式与安全区、尺寸延展、禁用（含用户已确认的约束）、验收清单
+2. **视觉提示词包**（`templates/prompt-pack-template.md`）：共用段 + 整图含字版 + 整图无字版 + 分素材版（逐个素材、合成顺序）+ 局部修改模板 + 挑图标准 + 出图问题补充句
+
+示例：`examples/tju-cann/transfer-douyin-street/brief.md`、`prompts.md`。
+
+项目目录：
+
 ```
 <项目目录>/
 ├── refs/           参考图、moodboard（仅内部）

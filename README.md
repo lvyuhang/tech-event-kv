@@ -36,6 +36,8 @@ references/
   case-studies.md           参考案例拆解
   lessons.md                经验库：踩过的坑（症状 → 原因 → 修正 → 规则位置）
 templates/
+  brief-template.md         设计 Brief 模板（标准交付之一）
+  prompt-pack-template.md   视觉提示词包模板（标准交付之二）
   kv.html                   分层合成 + 排版系统模板
   config.example.json       配置示例
 scripts/
@@ -73,6 +75,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v2.1：标准交付 = 设计 Brief + 视觉提示词包（模板与天大示例）
 - v2.0：参考迁移方法（reference-transfer.md）：给一张参考就能套到活动主题；材质库写法；示例：抖音心动街区 → 天大 CANN
 - v1.9：运营类两种主流视觉语言（3D 潮玩 / 平面模块拼贴）；天大双方向：B 方向代码直出成品，A 方向整张海报提示词；资料库新增钉钉生态大会
 - v1.8：运营 / 校园类改为"调性优先、叙事轻量"（genres A 优先级；concept 5.5 轻量版）；经验 L31
