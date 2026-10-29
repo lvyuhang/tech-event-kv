@@ -1,0 +1,243 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}canvas{display:block}</style></head>
+<body><canvas id="gl"></canvas>
+<script>
+// ---------------- 世界参数（米） ----------------
+const P = new URLSearchParams(location.search);
+const W = +P.get('w') || 1920, H = +P.get('h') || 1080, MODE = +P.get('mode') || 0;
+const CAM = (P.get('cam') || '-47,4.4,20.9').split(',').map(Number);
+const LOOK = (P.get('look') || '10,-2.4,18.2').split(',').map(Number);
+const FOV = +P.get('fov') || 50;
+const N = +P.get('tex') || 4096, X0 = -60, Z0 = -50, SPAN = 100;           // 贴图覆盖 x∈[-60,40] z∈[-50,50]
+const BX = 15, RIN = 17, LW = 1.3, LANES = 6, ROUT = RIN + LW * LANES;
+const SX = -30;                                              // 起跑线
+const FX = -4;                                                // 终点线
+
+// ---------------- 1. 俯视贴图 ----------------
+console.log('t0', performance.now()|0);
+const tex = document.createElement('canvas'); tex.width = tex.height = N;
+const c = tex.getContext('2d');
+const px = m => m / SPAN * N;
+const U = x => px(x - X0), V = z => px(z - Z0);
+// 外场草地
+c.fillStyle = '#2C6E3A'; c.fillRect(0, 0, N, N);
+// 内场草坪（割草条纹）
+c.save();
+c.beginPath();
+c.moveTo(U(X0 - 5), V(-RIN)); c.lineTo(U(BX), V(-RIN));
+c.arc(U(BX), V(0), px(RIN), -Math.PI / 2, Math.PI / 2, false);
+c.lineTo(U(X0 - 5), V(RIN)); c.closePath(); c.clip();
+for (let i = -20; i < 20; i++) { c.fillStyle = i % 2 ? '#36B062' : '#3FBD6C'; c.fillRect(U(X0) + i * 0, V(-RIN) + 0, N, 0); }
+for (let k = 0; k * 4 < 2 * RIN + 1; k++) { c.fillStyle = k % 2 ? '#2F7D40' : '#368A47'; c.fillRect(0, V(-RIN + k * 4), N, px(4) + 1); }
+// 内场标线（足球场中线、中圈）
+c.strokeStyle = 'rgba(255,255,255,0.75)'; c.lineWidth = px(0.12);
+c.beginPath(); c.moveTo(U(-20), V(-RIN + 2)); c.lineTo(U(-20), V(RIN - 2)); c.stroke();
+c.beginPath(); c.arc(U(-20), V(0), px(9), 0, Math.PI * 2); c.stroke();
+c.restore();
+// 跑道：底色 + 分道线
+function trackPath(r) { c.beginPath(); c.moveTo(U(X0 - 5), V(r)); c.lineTo(U(BX), V(r)); c.arc(U(BX), V(0), px(r), Math.PI / 2, -Math.PI / 2, true); c.lineTo(U(X0 - 5), V(-r)); }
+c.lineWidth = px(LW * LANES); c.strokeStyle = '#C9472D'; trackPath(RIN + LW * LANES / 2); c.stroke();
+c.strokeStyle = '#FFFFFF';
+for (let i = 0; i <= LANES; i++) { c.lineWidth = px(i === 0 || i === LANES ? 0.1 : 0.05); trackPath(RIN + i * LW); c.stroke(); }
+// 内沿路牙
+c.lineWidth = px(0.28); c.strokeStyle = '#F4F1EA'; trackPath(RIN - 0.14); c.stroke();
+
+// 起跑线、终点线
+c.fillStyle = '#fff'; c.fillRect(U(SX) - px(0.05), V(RIN), px(0.1), px(LW * LANES));
+// 终点：棋盘格带
+for (let i = 0; i < 2; i++) for (let j = 0; j < LANES * 4; j++) { if ((i + j) % 2) continue; c.fillStyle = '#16161D'; c.fillRect(U(FX) + i * px(0.325), V(RIN) + j * px(LW / 4), px(0.325), px(LW / 4)); }
+c.fillStyle = '#fff'; for (let i = 0; i < 2; i++) for (let j = 0; j < LANES * 4; j++) { if (!((i + j) % 2)) continue; c.fillRect(U(FX) + i * px(0.325), V(RIN) + j * px(LW / 4), px(0.325), px(LW / 4)); }
+
+// 地面上刷的字：字头朝前（+x），从镜头看左到右可读；沿 x 拉长，抵消透视压缩
+function paintAcross(x, chars, opt) {
+  chars.forEach((ch, i) => {
+    const z = RIN + (i + 0.5) * LW;
+    c.save(); c.translate(U(x), V(z)); c.rotate(Math.PI / 2); c.scale(1, opt.stretch);
+    c.font = `${opt.weight} ${px(opt.size)}px ${opt.family}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = opt.color; c.fillText(ch, 0, 0); c.restore();
+  });
+}
+// 道次编号（起跑线后方）
+paintAcross(SX - 2.2, ['1', '2', '3', '4', '5', '6'], { size: 0.95, stretch: 2.3, weight: 800, family: '"Inter Display","Inter"', color: '#FFFFFF' });
+// Slogan：每条跑道一个字
+paintAcross(SX + 4.2, [...'从第一个算子'], { size: 1.08, stretch: 2.6, weight: 900, family: '"Noto Sans CJK SC"', color: '#FFFFFF' });
+paintAcross(FX + 5.6, [...'到第一份贡献'], { size: 1.08, stretch: 2.6, weight: 900, family: '"Noto Sans CJK SC"', color: '#FFE14D' });
+
+// 每条跑道上的代码（沿跑道方向，字头朝内场）
+const CODE = [
+  'extern "C" __global__ __aicore__ void add_custom(GM_ADDR x, GM_ADDR y, GM_ADDR z)',
+  'KernelAdd op;  op.Init(x, y, z);  op.Process();   // 跑通 ✓',
+  '$ git checkout -b my-first-operator',
+  '$ git commit -m "feat: add my first operator"',
+  '$ git push origin my-first-operator',
+  'Pull Request #1  ·  1 commit  ·  Merged ✓',
+];
+c.font = `500 ${px(0.42)}px "DejaVu Sans Mono"`; c.textBaseline = 'middle';
+CODE.forEach((t, i) => {
+  const z = RIN + (i + 0.5) * LW;
+  c.save(); c.translate(U(SX + 7.6), V(z)); c.scale(1.9, 1); // 沿 x 拉宽一点
+  c.fillStyle = i === LANES - 1 ? '#FFE14D' : 'rgba(255,255,255,0.88)'; c.fillText(t, 0, 0); c.restore();
+});
+
+// ---------------- 2. WebGL ----------------
+console.log('tex painted', performance.now()|0);
+const gc = document.getElementById('gl'); gc.width = W; gc.height = H;
+const gl = gc.getContext('webgl2', { preserveDrawingBuffer: true, antialias: false });
+const vs = `#version 300 es
+in vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }`;
+const fs = `#version 300 es
+precision highp float;
+uniform sampler2D T; uniform vec2 R; uniform int MODE; uniform vec3 CAMP, LOOKP; uniform float FOVY;
+uniform float X0, Z0, SPAN, SX, FX, RIN, LW, ROUT;
+out vec4 o;
+const vec3 SUN = normalize(vec3(0.78, 0.17, -0.50));
+float h21(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
+float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }
+float fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<5;i++){ s+=a*noise(p); p*=2.03; a*=.5;} return s; }
+// --- 3D 道具：起跑器 + 终点带 ---
+float sdBox(vec3 p, vec3 b){ vec3 q=abs(p)-b; return length(max(q,0.))+min(max(q.x,max(q.y,q.z)),0.); }
+float sdRound(vec3 p, vec3 b, float r){ return sdBox(p,b-r)-r; }
+vec2 props(vec3 p){                     // x: 距离, y: 材质 id
+  vec2 res = vec2(1e5, 0.);
+  // 起跑器：每道一个，位于起跑线后 0.7m
+  float lane = floor((p.z - RIN)/LW);
+  if (lane >= 0. && lane < 6.) {
+    vec3 q = p - vec3(SX - 0.75, 0., RIN + (lane+0.5)*LW);
+    float rail = sdRound(q - vec3(0., 0.025, 0.), vec3(0.45, 0.025, 0.035), 0.01);
+    // 两块踏板，向后倾斜
+    vec3 a = q - vec3(0.16, 0.13, -0.15); a.xy = mat2(0.8,-0.6,0.6,0.8)*a.xy;
+    vec3 b = q - vec3(-0.18, 0.15, 0.15); b.xy = mat2(0.8,-0.6,0.6,0.8)*b.xy;
+    float pedals = min(sdRound(a, vec3(0.03, 0.12, 0.09), 0.015), sdRound(b, vec3(0.03, 0.12, 0.09), 0.015));
+    float d = min(rail, pedals);
+    if (d < res.x) res = vec2(d, pedals < rail ? 2. : 1.);
+  }
+  // 终点：两根立柱 + 一条略下垂的终点带
+  vec3 f = p - vec3(FX + 0.32, 0., 0.);
+  float post1 = sdRound(f - vec3(0., 0.7, RIN - 0.35), vec3(0.06, 0.7, 0.06), 0.02);
+  float post2 = sdRound(f - vec3(0., 0.7, ROUT + 0.35), vec3(0.06, 0.7, 0.06), 0.02);
+  float zz = (p.z - (RIN+ROUT)*0.5)/((ROUT-RIN)*0.5+0.35);
+  float sag = 1.22 - 0.10*(1.-zz*zz);
+  float tape = sdBox(f - vec3(0., sag, (RIN+ROUT)*0.5), vec3(0.008, 0.035, (ROUT-RIN)*0.5+0.35));
+  if (min(post1,post2) < res.x) res = vec2(min(post1,post2), 3.);
+  if (tape < res.x) res = vec2(tape, 4.);
+  return res;
+}
+vec3 nrm(vec3 p){ vec2 e=vec2(.002,0.); return normalize(vec3(props(p+e.xyy).x-props(p-e.xyy).x, props(p+e.yxy).x-props(p-e.yxy).x, props(p+e.yyx).x-props(p-e.yyx).x)); }
+float shadow(vec3 ro, vec3 rd){ float t=0.02, s=1.; for(int i=0;i<40;i++){ float d=props(ro+rd*t).x; s=min(s, 9.*d/t); t+=clamp(d,0.03,0.3); if(s<0.01||t>6.) break; } return clamp(s,0.,1.); }
+vec3 sky(vec3 rd){
+  float h = rd.y;
+  vec3 col = mix(vec3(1.00,0.76,0.52), vec3(0.42,0.64,0.93), smoothstep(0.01, 0.22, h));
+  col = mix(col, vec3(0.30,0.50,0.85), smoothstep(0.35, 0.9, h));
+  // 高空几缕薄云
+  float cl = fbm(vec2(rd.x/(h+0.15)*1.2, rd.z/(h+0.15)*3.5));
+  col = mix(col, vec3(1.0,0.90,0.80), smoothstep(0.55, 0.85, cl)*smoothstep(0.03,0.2,h)*0.45);
+  float sd = max(dot(rd, SUN), 0.);
+  col += vec3(1.0,0.75,0.45)*pow(sd, 18.)*0.6 + vec3(1.0,0.9,0.7)*pow(sd, 400.)*2.;
+  // 远处一排树和建筑的剪影（在雾里）
+  float az = atan(rd.z, rd.x);
+  float tl = 0.012 + 0.020*fbm(vec2(az*14., 1.)) + 0.008*fbm(vec2(az*60., 5.));
+  float cell = floor(az*22.); float bh = h21(vec2(cell, 3.)); 
+  float bld = (bh > 0.62 ? 0.025 + 0.03*h21(vec2(cell, 9.)) : 0.);
+  float tree = smoothstep(tl+0.003, tl-0.003, h);
+  float build = step(h, bld) * step(0.08, fract(az*22.)) ;
+  col = mix(col, vec3(0.86,0.74,0.64), build*0.35);
+  col = mix(col, vec3(0.42,0.52,0.40), tree*0.7);
+  return col;
+}
+vec3 shadeGround(vec3 p, vec3 rd, float t, out float ink){
+  vec2 uv = vec2((p.x - X0)/SPAN, (p.z - Z0)/SPAN);
+  bool inside = all(greaterThan(uv, vec2(0.002))) && all(lessThan(uv, vec2(0.998)));
+  vec3 alb = inside ? texture(T, uv).rgb : vec3(0.18, 0.56, 0.31);
+  alb = pow(alb, vec3(2.2));
+  // 区分材质：橙红塑胶 / 白漆 / 草
+  float isTrack = smoothstep(0.18, 0.35, alb.r - alb.g);
+  float isPaint = smoothstep(0.55, 0.8, min(alb.r, min(alb.g, alb.b)));
+  float isGrass = smoothstep(0.03, 0.12, alb.g - alb.r);
+  ink = isPaint;
+  // 塑胶颗粒
+  float g1 = noise(p.xz*90.), g2 = noise(p.xz*23.);
+  alb *= mix(1., 0.86 + 0.22*g1 + 0.08*g2, isTrack);
+  // 油漆磨损
+  float wear = smoothstep(0.55, 0.85, fbm(p.xz*3.1) * 0.6 + noise(p.xz*40.)*0.5);
+  alb = mix(alb, alb * vec3(0.92,0.78,0.72), isPaint * wear * 0.45);
+  // 草：细碎的明暗
+  float blades = noise(p.xz*140.)*0.6 + noise(p.xz*37.)*0.4;
+  alb *= mix(1., 0.78 + 0.28*fbm(p.xz*5.) + 0.18*(blades-0.5), isGrass);
+  alb = mix(alb, alb*vec3(1.05,1.02,0.85), isGrass*smoothstep(0.55,0.8,fbm(p.xz*0.35)));
+  bool np = (p.x > SX - 6. && p.x < SX + 1.5) || (p.x > FX - 6. && p.x < FX + 2.);
+  float sh = np ? shadow(p + vec3(0,0.001,0), SUN) : 1.;
+  float ndl = max(SUN.y, 0.);
+  vec3 sun = vec3(1.0, 0.78, 0.52) * 3.4;
+  vec3 amb = vec3(0.52, 0.64, 0.84) * 0.42;
+  // 接触阴影 / AO（靠近道具变暗）
+  float ao = np ? clamp(props(p + vec3(0,0.15,0)).x / 0.15, 0., 1.) : 1.; ao = 0.55 + 0.45*ao;
+  vec3 col = alb * (sun * ndl * sh + amb * ao);
+  // 塑胶在逆光下的一点光泽
+  vec3 h = normalize(SUN - rd);
+  col += isTrack * vec3(1.,0.8,0.6) * pow(max(h.y,0.), 60.) * 0.12 * sh;
+  return col;
+}
+void main(){
+  vec2 uv = (gl_FragCoord.xy - 0.5*R) / R.y;
+  vec3 f = normalize(LOOKP - CAMP), r = normalize(cross(f, vec3(0,1,0))), u = cross(r, f);
+  float k = 1. / tan(radians(FOVY)*0.5);
+  vec3 rd = normalize(uv.x*r + uv.y*u + k*0.5*f*2.);
+  vec3 ro = CAMP;
+  // 道具 raymarch
+  float t = 0., hit = 0., mat = 0.;
+  float tg = rd.y < 0. ? -ro.y/rd.y : 1e9;
+  // 只在道具所在的高度层（y < 1.6m）里 raymarch：从进入该层的位置开始
+  float tstart = rd.y < 0. ? max(0., (ro.y - 1.6)/(-rd.y)) : 1e9;
+  vec3 pg0 = ro + rd*tg;
+  bool nearProps = tg < 1e8 && ((pg0.x > SX - 3. && pg0.x < SX + 1.5) || (pg0.x > FX - 3.5 && pg0.x < FX + 2.));
+  if (tstart < 1e8 && nearProps) {
+    t = tstart;
+    for (int i = 0; i < 90; i++) { vec3 p = ro + rd*t; vec2 d = props(p); if (d.x < 0.0008*t) { hit = 1.; mat = d.y; break; } t += d.x*0.9; if (t > tg + 0.01) break; }
+  }
+  vec3 col; float depth; float ink = 0.;
+  if (hit > 0.5 && t < tg) {
+    vec3 p = ro + rd*t, n = nrm(p);
+    vec3 alb = mat < 1.5 ? vec3(0.62,0.64,0.66) : (mat < 2.5 ? vec3(0.16,0.40,0.95) : (mat < 3.5 ? vec3(0.95) : vec3(1.0,0.80,0.12)));
+    alb = pow(alb, vec3(2.2));
+    float sh = shadow(p + n*0.004, SUN);
+    float dif = max(dot(n, SUN), 0.);
+    vec3 h = normalize(SUN - rd);
+    col = alb * (vec3(1.0,0.86,0.68)*2.6*dif*sh + vec3(0.55,0.68,0.85)*(0.45+0.25*n.y)) + vec3(1.)*pow(max(dot(n,h),0.), 40.)*0.25*sh;
+    // 逆光轮廓光
+    col += vec3(1.0,0.8,0.55) * pow(1. - max(dot(n, -rd), 0.), 4.) * 0.35;
+    depth = t;
+  } else if (tg < 1e8) {
+    vec3 p = ro + rd*tg;
+    col = shadeGround(p, rd, tg, ink);
+    depth = tg;
+  } else { col = pow(sky(rd), vec3(2.2)); depth = 400.; }
+  // 空气透视：远处偏暖、变淡
+  float fog = 1. - exp(-depth * 0.0028);
+  vec3 haze = mix(vec3(1.00,0.78,0.55), vec3(0.85,0.80,0.75), 0.4) + vec3(1.0,0.7,0.4)*pow(max(dot(normalize(vec3(rd.x,0.,rd.z)), normalize(vec3(SUN.x,0.,SUN.z))),0.),6.)*0.35;
+  col = mix(col, pow(haze, vec3(2.2)), fog * 0.6);
+  if (MODE == 1) { o = vec4(vec3(clamp(depth/150., 0., 1.)), 1.); return; }
+  col *= 0.95;
+  col = (col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14);   // ACES 近似
+  o = vec4(pow(clamp(col,0.,1.), vec3(1./2.2)), 1.);
+}`;
+function sh(t, s){ const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) { console.log(gl.getShaderInfoLog(x)); throw gl.getShaderInfoLog(x); } return x; }
+const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); gl.useProgram(pr);
+const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+const tx = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tx);
+gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex);
+console.log('uploaded', performance.now()|0); gl.generateMipmap(gl.TEXTURE_2D); console.log('mip', performance.now()|0);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+const an = gl.getExtension('EXT_texture_filter_anisotropic'); if (an) gl.texParameterf(gl.TEXTURE_2D, an.TEXTURE_MAX_ANISOTROPY_EXT, 16);
+const U_ = n => gl.getUniformLocation(pr, n);
+gl.uniform1i(U_('T'), 0); gl.uniform2f(U_('R'), W, H); gl.uniform1i(U_('MODE'), MODE);
+gl.uniform3f(U_('CAMP'), ...CAM); gl.uniform3f(U_('LOOKP'), ...LOOK); gl.uniform1f(U_('FOVY'), FOV);
+[['X0',X0],['Z0',Z0],['SPAN',SPAN],['SX',SX],['FX',FX],['RIN',RIN],['LW',LW],['ROUT',ROUT]].forEach(([k,v]) => gl.uniform1f(U_(k), v));
+gl.viewport(0, 0, W, H); gl.drawArrays(gl.TRIANGLES, 0, 3); gl.finish(); console.log('drawn', performance.now()|0);
+window.TEX = tex;
+document.body.setAttribute('data-done', '1');
+</script></body></html>
