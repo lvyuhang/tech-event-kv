@@ -72,6 +72,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v1.8：运营 / 校园类改为"调性优先、叙事轻量"（genres A 优先级；concept 5.5 轻量版）；经验 L31
 - v1.7：AI 感信号与对策（contemporary.md 第六节）：分别生成单个素材再合成、加设计层、压泛光、统一视角；经验 L29
 - v1.6：机制主体的三个陷阱（术语、无焦点、没有人）；道具自检新增外行 / 焦点 / 字数测试；经验 L27
 - v1.5：机制主体结构（左文右图、连续主体演出 slogan）；资料库新增抖音生活服务搜索广告通案；天大示例 v6
