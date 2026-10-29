@@ -21,6 +21,7 @@
 SKILL.md                    主流程与硬规则
 references/
   brief-analysis.md         需求分析：九个问题、风格翻译、验收清单、待确认问题（第 1 步关卡）
+  reference-transfer.md     参考迁移：骨架 / 语言照搬，语义按槽位替换，过约束
   genres.md                 活动类型与视觉惯例、各类型评分权重
   brief.md                  brief 字段、活动类型 → 默认调性
   research.md               参考调研：范围、来源、检索词、拆解表、红海清单、版权边界
@@ -72,6 +73,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v2.0：参考迁移方法（reference-transfer.md）：给一张参考就能套到活动主题；材质库写法；示例：抖音心动街区 → 天大 CANN
 - v1.9：运营类两种主流视觉语言（3D 潮玩 / 平面模块拼贴）；天大双方向：B 方向代码直出成品，A 方向整张海报提示词；资料库新增钉钉生态大会
 - v1.8：运营 / 校园类改为"调性优先、叙事轻量"（genres A 优先级；concept 5.5 轻量版）；经验 L31
 - v1.7：AI 感信号与对策（contemporary.md 第六节）：分别生成单个素材再合成、加设计层、压泛光、统一视角；经验 L29
