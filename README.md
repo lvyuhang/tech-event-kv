@@ -72,6 +72,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v1.3：运营 / 校园类"宁少勿乱"物件规则、标题字去老气规则；经验 L25；天大示例 v4 第二轮
 - v1.2：没有生图模型时的潮玩物件路线（three.js 圆角几何体 + PBR + 前景虚化）；天大示例 v4 成品 KV；经验 L24
 - v1.1：运营 / 校园类 3D 潮玩的分区提示词结构（含字版当风格板、无字版出主图）；genres A 硬要求（技术元素长在物件上、黑色定制标题字、合影安全区）；经验 L23；天大示例 v3 风格板与 image-2 提示词
 - v1.0：需求分析前置为关卡（brief-analysis.md）；活动类型与视觉惯例（genres.md），评分按类型调权；风格板关卡；运营类标题字设计；需求验收清单作为第一道自检；经验 L19–L22

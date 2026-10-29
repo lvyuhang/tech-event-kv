@@ -1,53 +1,40 @@
 <!doctype html><html><head><meta charset="utf-8"><style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:2560px;height:1440px;position:relative;overflow:hidden;font-family:"Noto Sans CJK SC";background:#EEF0FF}
+body{width:2560px;height:1440px;position:relative;overflow:hidden;font-family:"Noto Sans CJK SC";background:#EEF0FF;color:#0E1124}
 #hero{position:absolute;inset:0;width:2560px;height:1440px}
-.logos{position:absolute;left:84px;top:56px;display:flex;align-items:center;gap:22px}
-.logo{height:76px;padding:0 30px;border:3px dashed rgba(29,36,64,.45);border-radius:18px;display:flex;align-items:center;font:700 28px "Noto Sans CJK SC";color:rgba(29,36,64,.6);background:rgba(255,255,255,.45)}
-.x{font:700 30px Inter;color:rgba(29,36,64,.5)}
-.block{position:absolute;left:0;right:0;top:540px;display:flex;flex-direction:column;align-items:center}
-.l1{font:900 60px "Noto Sans CJK SC";letter-spacing:.32em;color:#111;padding-left:.32em;
- background:#fff;border-radius:99px;padding:6px 40px 8px 58px;box-shadow:0 6px 0 #111}
-.l2{position:relative;margin-top:26px;transform:skewX(-9deg);white-space:nowrap;line-height:1}
-.l2 span{font-size:168px;font-weight:900;color:#111;letter-spacing:-4px;
- -webkit-text-stroke:0;paint-order:stroke fill;
- text-shadow:
-  0 0 0 #111,
-  4px 4px 0 #2F6BFF,8px 8px 0 #2F6BFF,12px 12px 0 #2F6BFF,16px 16px 0 #2F6BFF,
-  -7px 0 0 #fff,7px 0 0 #fff,0 -7px 0 #fff,0 7px 0 #fff,-5px -5px 0 #fff,5px -5px 0 #fff,-5px 5px 0 #fff,5px 5px 0 #fff,
-  20px 20px 0 #2F6BFF,22px 22px 0 #fff,24px 24px 0 #fff, 14px 30px 40px rgba(40,60,160,.35)}
-.l2 .en{font-family:"Inter Display","Inter";font-weight:900;font-style:italic;letter-spacing:-6px;margin-right:22px}
-.speed{position:absolute;right:-200px;bottom:14px;width:180px}
-.speed i{display:block;height:16px;background:#111;border-radius:10px;margin-top:14px;box-shadow:0 0 0 5px #fff, 6px 6px 0 5px #2F6BFF}
-.speed i:nth-child(1){width:100%}.speed i:nth-child(2){width:70%;margin-left:30%}.speed i:nth-child(3){width:42%;margin-left:58%}
-.speedL{position:absolute;left:-220px;top:40px;width:180px}
-.speedL i{display:block;height:14px;background:#111;border-radius:10px;margin-top:14px;box-shadow:0 0 0 5px #fff}
-.speedL i:nth-child(1){width:55%;margin-left:45%}.speedL i:nth-child(2){width:100%}
-.l3{margin-top:34px;font:900 64px "Noto Sans CJK SC";color:#111;letter-spacing:.06em;transform:skewX(-9deg);
- text-shadow:-4px 0 0 #fff,4px 0 0 #fff,0 -4px 0 #fff,0 4px 0 #fff,6px 6px 0 #fff}
-.row{margin-top:30px;display:flex;align-items:center;gap:30px}
-.bubble{position:relative;background:#2F6BFF;color:#fff;font:900 54px "Noto Sans CJK SC";padding:14px 42px 20px;border-radius:999px;
- box-shadow:0 0 0 6px #fff,10px 10px 0 6px #111;transform:rotate(-2deg)}
-.bubble:after{content:"";position:absolute;left:70px;bottom:-30px;border:22px solid transparent;border-top:30px solid #2F6BFF;border-left:12px solid #2F6BFF;transform:skewX(-20deg)}
-.bubble b{color:#FFE14D}
-.pill{background:#111;color:#fff;font:700 38px "Noto Sans CJK SC";padding:15px 34px;border-radius:999px;box-shadow:0 0 0 5px #fff}
-.pill em{font-style:normal;font-family:"Inter Display","Inter";font-weight:800}
-.pill .sep{opacity:.5;margin:0 14px}
-.tbd{font:500 22px "Noto Sans CJK SC";color:rgba(29,36,64,.45);position:absolute;right:60px;bottom:40px}
-#grain{position:absolute;inset:0;mix-blend-mode:overlay;opacity:.35}
+.logos{position:absolute;left:96px;top:64px;display:flex;align-items:center;gap:18px}
+.logo{height:60px;padding:0 26px;border:2px dashed rgba(14,17,36,.28);border-radius:14px;display:flex;align-items:center;font:500 24px "Noto Sans CJK SC";color:rgba(14,17,36,.45)}
+.x{font:300 26px Inter;color:rgba(14,17,36,.35)}
+.block{position:absolute;left:0;right:0;top:560px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.l1{display:flex;align-items:center;gap:22px;font:700 44px "Noto Sans CJK SC";letter-spacing:.42em;padding-left:.42em;color:#0E1124}
+.l1:before,.l1:after{content:"";width:64px;height:3px;border-radius:3px;background:#2F6BFF}
+.l2{margin-top:22px;white-space:nowrap;line-height:1;font-size:158px;font-weight:900;letter-spacing:-.015em;
+  text-shadow:0 18px 50px rgba(47,80,200,.16)}
+.l2 .en{font-family:"Inter Display";font-weight:900;letter-spacing:-.035em;margin-right:.08em;
+  background:linear-gradient(100deg,#2F6BFF 0%,#5B5CFF 55%,#8A5CFF 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  padding:.1em .04em;margin-left:-.04em}
+.l3{margin-top:30px;font:700 58px "Noto Sans CJK SC";letter-spacing:.14em;padding-left:.14em;color:#1B2140}
+.row{margin-top:48px;display:flex;align-items:center;gap:22px}
+.slogan{font:900 54px "Noto Sans CJK SC";color:#0E1124;letter-spacing:.04em;padding:20px 52px 24px;border-radius:999px;
+  background:rgba(255,255,255,.62);border:2px solid rgba(255,255,255,.95);
+  box-shadow:0 24px 60px rgba(47,90,255,.16), inset 0 -6px 18px rgba(120,140,255,.10)}
+.slogan b{color:#2F6BFF}
+.info{font:500 36px "Noto Sans CJK SC";color:#1B2140;display:flex;align-items:center;gap:18px;padding:22px 38px;border-radius:999px;background:#0E1124;color:#fff}
+.info em{font:600 38px "Inter Display";font-style:normal}
+.info i{width:2px;height:30px;background:rgba(255,255,255,.35)}
+#grain{position:absolute;inset:0;mix-blend-mode:overlay;opacity:.22}
 </style></head><body>
 <img id="hero" src="hero_post.png">
 <div class="logos"><div class="logo">天津大学 LOGO</div><span class="x">×</span><div class="logo">GitCode LOGO</div><span class="x">×</span><div class="logo">CANN LOGO</div></div>
 <div class="block">
  <div class="l1">天津大学</div>
- <div class="l2"><span class="en">CANN</span><span>开发者俱乐部</span><div class="speed"><i></i><i></i><i></i></div></div>
+ <div class="l2"><span class="en">CANN</span>开发者俱乐部</div>
  <div class="l3">成立仪式暨校园宣讲会</div>
- <div class="row"><div class="bubble">从<b>第一个算子</b>，到<b>第一份贡献</b></div>
- <div class="pill"><em>11</em>月<em>8</em>日<span class="sep">｜</span>天津大学 XXX</div></div>
+ <div class="row"><div class="slogan">从<b>第一个算子</b>，到<b>第一份贡献</b></div>
+ <div class="info"><span><em>11</em> 月 <em>8</em> 日</span><i></i>天津大学 XXX</div></div>
 </div>
 <canvas id="grain" width="2560" height="1440"></canvas>
 <script>
 const c=document.getElementById('grain').getContext('2d');const d=c.createImageData(2560,1440);
-for(let i=0;i<d.data.length;i+=4){const v=128+(Math.random()-.5)*60;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255;}c.putImageData(d,0,0);
-</script>
-</body></html>
+for(let i=0;i<d.data.length;i+=4){const v=128+(Math.random()-.5)*50;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255;}c.putImageData(d,0,0);
+</script></body></html>
