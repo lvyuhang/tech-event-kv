@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<style>
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#FFF4E4}
+  svg{display:block}
+  .cjk{font-family:"Smiley Sans","Alimama FangYuanTi VF","Noto Sans CJK SC",sans-serif}
+  .lat{font-family:"Inter Display","Inter",sans-serif}
+  .mono{font-family:"JetBrains Mono","DejaVu Sans Mono",monospace}
+</style></head>
+<body>
+<svg id="kv" width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 跑道几何：弯道圆心 (CX, CY)，中心线半径 RC，6 条道，每道 LW -->
+    <pattern id="mow" width="160" height="1080" patternUnits="userSpaceOnUse">
+      <rect width="80" height="1080" fill="#2EB872"/><rect x="80" width="80" height="1080" fill="#36C179"/>
+    </pattern>
+    <pattern id="checker" width="24" height="24" patternUnits="userSpaceOnUse">
+      <rect width="24" height="24" fill="#fff"/><rect width="12" height="12" fill="#16161D"/><rect x="12" y="12" width="12" height="12" fill="#16161D"/>
+    </pattern>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.09 0"/></filter>
+  </defs>
+  <g id="scene"></g>
+  <rect width="1920" height="1080" filter="url(#grain)" opacity="1"/>
+</svg>
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const S = document.getElementById('scene');
+const mk = (tag, attrs, parent = S, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; parent.appendChild(e); return e; };
+const CX = 1210, CY = 430, LW = 52, LANES = 6;
+const RIN = 318, ROUT = RIN + LW * LANES;          // 内沿 / 外沿半径
+const lanePath = r => `M -80 ${CY + r} L ${CX} ${CY + r} A ${r} ${r} 0 0 0 ${CX} ${CY - r} L -80 ${CY - r}`;
+
+// 草坪（跑道内侧）
+mk('path', { d: `M -80 ${CY - RIN} L ${CX} ${CY - RIN} A ${RIN} ${RIN} 0 0 1 ${CX} ${CY + RIN} L -80 ${CY + RIN} Z`, fill: 'url(#mow)' });
+// 草坪上的白色标线：中线 + 中圈（足球场的一部分），让"操场"可读
+const fl = mk('g', { stroke: '#fff', 'stroke-width': 4, fill: 'none', opacity: 0.38 });
+mk('line', { x1: 880, y1: CY - RIN + 26, x2: 880, y2: CY + RIN - 26 }, fl);
+mk('circle', { cx: 880, cy: CY, r: 150 }, fl);
+
+// 跑道底色
+mk('path', { d: lanePath((RIN + ROUT) / 2), stroke: '#FF5B35', 'stroke-width': LW * LANES, fill: 'none' });
+// 分道线
+for (let i = 0; i <= LANES; i++) mk('path', { d: lanePath(RIN + i * LW), stroke: '#fff', 'stroke-width': i === 0 || i === LANES ? 5 : 3.5, fill: 'none', opacity: 0.95 });
+
+// 每条跑道上的代码：一条比一条更进一步（算子 → 分支 → commit → push → PR → Merged）
+const CODE = [
+  'extern "C" __global__ __aicore__ void add_custom(GM_ADDR x, GM_ADDR y, GM_ADDR z)',
+  'KernelAdd op;   op.Init(x, y, z);   op.Process();      // 跑通 ✓',
+  '$ git checkout -b my-first-operator',
+  '$ git commit -m "feat: add my first operator"',
+  '$ git push origin my-first-operator',
+  'Pull Request #1   ·   1 commit   ·   Merged',
+];
+CODE.forEach((t, i) => {
+  const r = RIN + (i + 0.5) * LW;
+  const id = 'lane' + i;
+  mk('path', { id, d: lanePath(r), fill: 'none' }, S.ownerSVGElement.querySelector('defs'));
+  const tx = mk('text', { class: 'mono', 'font-size': 21, fill: '#fff', 'fill-opacity': i === LANES - 1 ? 1 : 0.92, 'font-weight': i === LANES - 1 ? 700 : 400, dy: 7.5, 'letter-spacing': 0.5 });
+  mk('textPath', { href: '#' + id, startOffset: 720 + i * 6 }, tx, t);
+});
+// 起跑线 + 道次编号（在底部直道上）
+const SX = 330;
+mk('rect', { x: SX, y: CY + RIN, width: 10, height: LW * LANES, fill: '#fff' });
+for (let i = 0; i < LANES; i++) mk('text', { x: SX - 64, y: CY + RIN + i * LW + LW / 2 + 12, class: 'lat', 'font-size': 34, 'font-weight': 800, fill: '#fff' }, S, String(i + 1));
+// 终点线：弯道上方，跨所有道
+const FA = -1.12; // 弧度，相对弯道圆心
+const fx1 = CX + RIN * Math.cos(FA), fy1 = CY + RIN * Math.sin(FA), fx2 = CX + ROUT * Math.cos(FA), fy2 = CY + ROUT * Math.sin(FA);
+mk('line', { x1: fx1, y1: fy1, x2: fx2, y2: fy2, stroke: 'url(#checker)', 'stroke-width': 26 });
+mk('line', { x1: fx1, y1: fy1, x2: fx2, y2: fy2, stroke: '#16161D', 'stroke-width': 26, 'stroke-dasharray': '13 13', opacity: 0.0 });
+
+// 贴纸
+function sticker(x, y, rot, w, h, fill, lines, opt = {}) {
+  const g = mk('g', { transform: `translate(${x} ${y}) rotate(${rot})` });
+  mk('rect', { x: 7, y: 8, width: w, height: h, rx: h / 2.6, fill: '#16161D' }, g);
+  mk('rect', { x: 0, y: 0, width: w, height: h, rx: h / 2.6, fill, stroke: '#16161D', 'stroke-width': 4 }, g);
+  lines.forEach((l, i) => mk('text', { x: w / 2, y: l.y, 'text-anchor': 'middle', class: l.cls || 'cjk', 'font-size': l.size, 'font-weight': l.w || 900, fill: l.fill || '#16161D', 'letter-spacing': l.ls || 0 }, g, l.t));
+  return g;
+}
+sticker(352, CY + RIN - 40, -5, 286, 80, '#FFD43B', [{ t: '起点 · 第一个算子', y: 53, size: 32 }]);
+sticker(1480, 40, 7, 330, 108, '#4DA8FF', [{ t: '终点 · 第一份贡献', y: 50, size: 32, fill: '#fff' }, { t: 'MERGED ✓', y: 86, size: 22, cls: 'lat', w: 800, fill: '#fff', ls: 3 }]);
+sticker(1105, 132, -9, 236, 70, '#fff', [{ t: 'Hello, CANN!', y: 46, size: 30, cls: 'lat', w: 800 }]);
+
+// ---------- 文字（写在草坪上，像操场上刷的字） ----------
+const T = mk('g', {});
+const L = 128;
+// logo 占位
+const slot = (x, w, label) => { mk('rect', { x, y: 104, width: w, height: 50, rx: 12, fill: 'none', stroke: '#fff', 'stroke-width': 2.5, 'stroke-dasharray': '7 6', opacity: 0.9 }, T); mk('text', { x: x + w / 2, y: 136, 'text-anchor': 'middle', class: 'cjk', 'font-size': 18, 'font-weight': 500, fill: '#fff', opacity: 0.9 }, T, label); };
+slot(L, 190, '天津大学 LOGO'); slot(L + 206, 170, 'GitCode LOGO'); slot(L + 392, 150, 'CANN LOGO');
+
+mk('text', { x: L, y: 236, class: 'cjk', 'font-size': 52, 'font-weight': 900, fill: '#fff', 'letter-spacing': 4 }, T, '天津大学');
+const big = mk('text', { x: L - 6, y: 378, class: 'cjk', 'font-size': 132, 'font-weight': 900, fill: '#fff', 'letter-spacing': -2 }, T);
+mk('tspan', { class: 'lat', 'font-weight': 900, 'letter-spacing': -3 }, big, 'CANN ');
+mk('tspan', {}, big, '开发者俱乐部');
+mk('text', { x: L, y: 456, class: 'cjk', 'font-size': 56, 'font-weight': 900, fill: '#fff', 'letter-spacing': 3 }, T, '成立仪式暨校园宣讲会');
+// slogan：荧光笔高亮
+const SG = '从第一个算子，到第一份贡献';
+const sg = mk('text', { x: L + 18, y: 566, class: 'cjk', 'font-size': 50, 'font-weight': 900, fill: '#16161D', 'letter-spacing': 2 }, T, SG);
+const bb = sg.getBBox();
+const hl = mk('path', { d: `M ${bb.x - 22} ${bb.y + 8} L ${bb.x + bb.width + 24} ${bb.y + 2} L ${bb.x + bb.width + 18} ${bb.y + bb.height + 6} L ${bb.x - 16} ${bb.y + bb.height + 12} Z`, fill: '#FFD43B', stroke: '#16161D', 'stroke-width': 4, 'stroke-linejoin': 'round' }, T);
+T.insertBefore(hl, sg);
+// 时间地点：小票贴纸
+const info = sticker(L, 612, -2, 430, 64, '#fff', [{ t: '11 月 8 日 ｜ 天津大学 XXX', y: 43, size: 29, w: 700 }]);
+T.appendChild(info);
+
+// 防裁切检查：记录所有文字的边界，渲染脚本读出
+window.KV_BOXES = [...document.querySelectorAll('text')].map(t => { const b = t.getBoundingClientRect(); return [t.textContent.slice(0, 12), Math.round(b.left), Math.round(b.top), Math.round(b.right), Math.round(b.bottom)]; });
+document.body.setAttribute('data-ready', '1');
+</script>
+</body></html>

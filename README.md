@@ -46,6 +46,7 @@ scripts/
   compose_photo.py          把生图模型的透明物体照片和排版内容合成（自动检测 + 折射）
   library_index.py          设计资料库索引、查询、对照板
 examples/galaxy-devcon/     完整示例：参考调研、概念推导、4 轮评审与修改记录、生成式主图、配置、输出
+examples/tju-cann/          校园活动示例：矢量插画代码直出（跑道 × 代码），路线 F
 library/                    设计资料库：标注模板、范例条目、自动索引
 ```
 
@@ -68,6 +69,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v0.8：主图路线 F（矢量插画代码直出）与天津大学 CANN 校园活动示例；经验 L16–L17
 - v0.7：SKILL.md 重写为统一结构（主图路线表、排版系统表、硬规则 7 条）；经验库 lessons.md；设计资料库 library/ 与 library_index.py
 - v0.6：invite 排版系统（一图一句）；compose_photo.py（模型出光影、排版出内容）；评分校准与高端品牌减法规则
 - v0.5：玻璃透镜后期 glass_lens.py；lockup 增加 info_side / mark_weight / mark_tracking；真实品牌概念稿规则
