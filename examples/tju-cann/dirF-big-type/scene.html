@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"./three/build/three.module.js","three/addons/":"./three/examples/jsm/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { TTFLoader } from 'three/addons/loaders/TTFLoader.js';
+import { Font } from 'three/addons/loaders/FontLoader.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+const P=new URLSearchParams(location.search); const W=+(P.get('w')||1600), H=+(P.get('h')||900);
+const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true}); r.setPixelRatio(1); r.setSize(W,H);
+r.toneMapping=THREE.NeutralToneMapping; r.toneMappingExposure=1.0; document.body.appendChild(r.domElement);
+const scene=new THREE.Scene(); const pm=new THREE.PMREMGenerator(r);
+scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture; scene.environmentIntensity=1.0;
+const cam=new THREE.PerspectiveCamera(28,W/H,1,400); cam.position.set(0,-2,60); cam.lookAt(0,3,0);
+const key=new THREE.DirectionalLight(0xffffff,2.0); key.position.set(-20,30,30); scene.add(key);
+const rim=new THREE.DirectionalLight(0xbfe9ff,1.6); rim.position.set(25,10,-20); scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xdfe8ff,0x3050ff,0.6));
+function canvasTex(w,h,f){const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;}
+// background plane
+{const t=canvasTex(2048,1152,(g,w,h)=>{const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,'#1F55F0');gr.addColorStop(.55,'#2F6BFF');gr.addColorStop(1,'#5A5CFF');g.fillStyle=gr;g.fillRect(0,0,w,h);
+ const q=g.createRadialGradient(w*.5,h*.32,0,w*.5,h*.32,w*.42);q.addColorStop(0,'rgba(140,220,255,.55)');q.addColorStop(1,'rgba(140,220,255,0)');g.fillStyle=q;g.fillRect(0,0,w,h);
+ g.strokeStyle='rgba(255,255,255,.07)';g.lineWidth=2;for(let x=0;x<w;x+=64){g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke();}for(let y=0;y<h;y+=64){g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke();}});
+ const d=160; const hh=2*d*Math.tan(THREE.MathUtils.degToRad(14))*1.25; const m=new THREE.Mesh(new THREE.PlaneGeometry(hh*W/H,hh),new THREE.MeshBasicMaterial({map:t,toneMapped:false}));
+ m.position.set(0,3-0,-100); m.lookAt(cam.position); scene.add(m);}
+const buf=await (await fetch('font.otf')).arrayBuffer();
+const L=new TTFLoader(); L.reversed=true; const font=new Font(L.parse(buf));
+const sides=[0x4FDDAA,0x7FA8FF,0x8FB6FF,0x8FB6FF,0x7FA8FF];
+const letters=['>','C','A','N','N']; const g=new THREE.Group(); let x=0; const gap=0.8, size=6.8;
+letters.forEach((ch,i)=>{
+ const geo=new TextGeometry(ch,{font,size,depth:4.2,curveSegments:14,bevelEnabled:true,bevelThickness:0.9,bevelSize:0.55,bevelSegments:10}); geo.computeBoundingBox();
+ const bb=geo.boundingBox; const w=bb.max.x-bb.min.x; geo.translate(-bb.min.x-w/2,-size/2,-1.6);
+ const front=new THREE.MeshPhysicalMaterial({color:0xFFFFFF,roughness:0.18,clearcoat:1,clearcoatRoughness:0.05,iridescence:0.35,iridescenceIOR:1.25,sheen:0.3,sheenColor:new THREE.Color(0xCFE6FF)});
+ const side=new THREE.MeshPhysicalMaterial({color:sides[i],roughness:0.22,clearcoat:1,clearcoatRoughness:0.1,transmission:0.35,thickness:2,attenuationColor:new THREE.Color(sides[i]),attenuationDistance:3});
+ const m=new THREE.Mesh(geo,[front,side]);
+ const lg=new THREE.Group(); lg.add(m);
+ lg.position.x=x+w/2; lg.position.y=[0,0.4,-0.3,0.5,-0.2][i]; lg.rotation.set([0.08,0.10,0.04,0.08,0.02][i],[-0.26,-0.18,-0.08,0.06,0.16][i],[0,0.06,-0.03,0.04,-0.05][i]); if(i==0){lg.scale.setScalar(0.85);}
+ g.add(lg); x+=w+gap;
+});
+{const cur=new THREE.Mesh(new RoundedBoxGeometry(4.2,1.3,4.2,4,0.5),new THREE.MeshPhysicalMaterial({color:0x4FDDAA,emissive:0x2BCB90,emissiveIntensity:0.6,roughness:0.2,clearcoat:1})); cur.position.set(x+2.1,-size/2+0.6,0); cur.rotation.y=0.2; g.add(cur); x+=4.2+gap;}
+g.position.set(-x/2+gap/2,8.4,0); scene.add(g);
+// small floats
+function keycap(text,col,fg,pos,rot,s=1){const grp=new THREE.Group();
+ const mat=new THREE.MeshPhysicalMaterial({color:col,transmission:0.6,thickness:1.5,roughness:0.2,clearcoat:1});
+ grp.add(new THREE.Mesh(new RoundedBoxGeometry(3.2,2.2,3.2,5,0.6),mat));
+ const t=canvasTex(512,256,(c,w,h)=>{c.font='900 150px "Inter Display"';c.fillStyle=fg;c.textAlign='center';c.textBaseline='middle';c.fillText(text,w/2,h/2+8);});
+ const pl=new THREE.Mesh(new THREE.PlaneGeometry(2.8,1.4),new THREE.MeshBasicMaterial({map:t,transparent:true,toneMapped:false})); pl.rotation.x=-Math.PI/2; pl.position.y=1.12; grp.add(pl);
+ grp.position.set(...pos); grp.rotation.set(...rot); grp.scale.setScalar(s); scene.add(grp);}
+keycap('add',0xFFFFFF,'#2F6BFF',[-24,-6,2],[0.7,0.5,0.25],1.6);
+keycap('+1',0x4FDDAA,'#0E1124',[24,-4,2],[0.6,-0.5,-0.2],1.4);
+// plush stars
+function starShape(R,rr){const s=new THREE.Shape();for(let i=0;i<8;i++){const a=Math.PI/2+i*Math.PI/4,d=i%2?rr:R;const px=Math.cos(a)*d,py=Math.sin(a)*d;i?s.lineTo(px,py):s.moveTo(px,py);}s.closePath();return s;}
+function star(col,pos,sz){const geo=new THREE.ExtrudeGeometry(starShape(sz,sz*0.32),{depth:sz*0.3,bevelEnabled:true,bevelThickness:sz*0.25,bevelSize:sz*0.15,bevelSegments:8});geo.center();
+ const m=new THREE.Mesh(geo,new THREE.MeshPhysicalMaterial({color:col,roughness:0.35,clearcoat:1}));m.position.set(...pos);m.rotation.set(0.2,0.3,0.4);scene.add(m);}
+star(0xFFD45C,[19,16,-2],1.8); star(0xFFFFFF,[-20,13,0],1.1); star(0x4FDDAA,[-6,15.5,-6],0.9);
+r.render(scene,cam); window.DONE=true;
+</script></body></html>
