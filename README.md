@@ -75,6 +75,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v2.3：线下印刷主视觉板的约束（远看、人挡下半部、logo、放大倍数、CMYK、画幅），在提方向前筛创意；经验 L33
 - v2.2：三种可复用创意结构（载体借用 / 贴纸堆 / 场景微缩）；天大登机牌、贴纸笔记本两版代码直出初稿，招新摊位 Brief + 提示词包
 - v2.1：标准交付 = 设计 Brief + 视觉提示词包（模板与天大示例）
 - v2.0：参考迁移方法（reference-transfer.md）：给一张参考就能套到活动主题；材质库写法；示例：抖音心动街区 → 天大 CANN
