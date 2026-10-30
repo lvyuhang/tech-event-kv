@@ -1,0 +1,80 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--b:#2F6BFF;--m:#4FDDAA;--ink:#0E1124;--p:#FF8FB0}
+body{width:2560px;height:1440px;position:relative;overflow:hidden;font-family:"Noto Sans CJK SC";color:var(--ink);
+ background:radial-gradient(1400px 900px at 70% 30%,#4C82FF 0%,#2F6BFF 45%,#1F52E6 100%)}
+.dots{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.18) 2.5px,transparent 2.6px);background-size:48px 48px}
+.logos{position:absolute;left:110px;top:70px;display:flex;gap:16px}
+.logo{height:64px;padding:0 26px;border:2px dashed rgba(255,255,255,.55);border-radius:12px;display:flex;align-items:center;font:500 24px "Noto Sans CJK SC";color:rgba(255,255,255,.8)}
+.card{position:absolute;left:230px;top:200px;width:2100px;height:1000px;transform:rotate(-3deg);filter:drop-shadow(0 40px 60px rgba(10,30,120,.35))}
+.main,.stub{position:absolute;top:0;height:1000px;background:#fff}
+.main{left:0;width:1500px;border-radius:44px 0 0 44px;
+ -webkit-mask:radial-gradient(circle 34px at 1500px 0,transparent 33px,#000 34px),radial-gradient(circle 34px at 1500px 1000px,transparent 33px,#000 34px);-webkit-mask-composite:source-in}
+.stub{left:1500px;width:600px;border-radius:0 44px 44px 0;border-left:6px dashed #C9D3EA;
+ -webkit-mask:radial-gradient(circle 34px at 0 0,transparent 33px,#000 34px),radial-gradient(circle 34px at 0 1000px,transparent 33px,#000 34px);-webkit-mask-composite:source-in}
+.bar{position:absolute;left:0;right:0;top:0;height:120px;background:var(--b);border-radius:44px 0 0 0;display:flex;align-items:center;padding:0 70px;justify-content:space-between;color:#fff}
+.bar .l{font:900 40px "Inter Display";letter-spacing:.18em}
+.bar .r{font:700 30px "Noto Sans CJK SC";letter-spacing:.2em;opacity:.9}
+.lab{font:700 24px "Inter Display";letter-spacing:.2em;color:#8A93B5}
+.title{position:absolute;left:70px;top:160px}
+.title .s{font:900 50px "Noto Sans CJK SC";letter-spacing:.3em}
+.title .b{margin-top:6px;font:900 132px "Noto Sans CJK SC";letter-spacing:-.02em;line-height:1.05}
+.title .b em{font-style:normal;font-family:"Inter Display";letter-spacing:-.04em;color:var(--b)}
+.title .c{margin-top:10px;font:700 46px "Noto Sans CJK SC";letter-spacing:.16em;color:#3A4166}
+.route{position:absolute;left:70px;top:505px;width:1360px;display:flex;align-items:flex-start;justify-content:space-between}
+.pt .code{font:900 168px "Inter Display";letter-spacing:-.04em;line-height:.9}
+.pt .zh{margin-top:16px;font:900 52px "Noto Sans CJK SC"}
+.pt.to{text-align:right}.pt.to .code{color:var(--b)}.pt.from .code{color:var(--ink)}
+.mid{flex:1;margin:70px 40px 0;position:relative;height:80px}
+.mid .ln{position:absolute;left:0;right:70px;top:38px;border-top:6px dashed #BFCBEA}
+.mid .key{position:absolute;right:0;top:0;width:80px;height:80px;border-radius:20px;background:var(--m);color:#fff;font:900 56px "Inter Display";display:flex;align-items:center;justify-content:center;box-shadow:0 8px 0 #2BA884}
+.mid .dot{position:absolute;left:-6px;top:28px;width:26px;height:26px;border-radius:50%;background:var(--ink)}
+.info{position:absolute;left:70px;bottom:60px;right:70px;display:flex;gap:70px;align-items:flex-end}
+.info div .v{margin-top:8px;font:900 46px "Noto Sans CJK SC"}
+.info div .v b{font:900 50px "Inter Display"}
+.barcode{position:absolute;left:60px;bottom:56px;height:80px;display:flex;gap:6px;align-items:stretch}
+.barcode i{background:var(--ink);display:block}
+/* stub */
+.st{position:absolute;left:60px;right:50px}
+.holo{position:absolute;left:330px;top:575px;width:190px;height:190px;border-radius:50%;
+ background:conic-gradient(from 30deg,#9EE7FF,#C9B8FF,#FFB7C9,#FFF1A8,#A8FFDA,#9EE7FF);box-shadow:inset 0 0 0 10px rgba(255,255,255,.55),0 6px 20px rgba(100,80,200,.25);display:flex;align-items:center;justify-content:center}
+.qr{width:220px;height:220px;border:4px dashed #BFCBEA;border-radius:20px;display:flex;align-items:center;justify-content:center;font:500 24px "Noto Sans CJK SC";color:#8A93B5;text-align:center}
+.stamp{position:absolute;width:300px;height:300px;border-radius:50%;border:8px solid #FF6A8A;color:#FF6A8A;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(14deg);opacity:.9;font:900 38px "Inter Display";letter-spacing:.06em}
+.stamp:before{content:"";position:absolute;inset:14px;border-radius:50%;border:3px solid #FF6A8A}
+.stamp small{font:700 26px "Noto Sans CJK SC";letter-spacing:.2em}
+.sticker{position:absolute;background:var(--m);color:#fff;font:900 46px "Inter Display";padding:16px 34px;border-radius:999px;box-shadow:0 0 0 8px #fff,0 16px 30px rgba(10,30,120,.3);transform:rotate(-8deg)}
+</style></head><body>
+<div class="dots"></div>
+<div class="logos"><div class="logo">天津大学 LOGO</div><div class="logo">GitCode LOGO</div><div class="logo">CANN LOGO</div></div>
+<div class="card">
+ <div class="main">
+  <div class="bar"><span class="l">BOARDING PASS</span><span class="r">登机牌 · 校园特别航班</span></div>
+  <div class="title"><div class="s">天津大学</div><div class="b"><em>CANN</em> 开发者俱乐部</div><div class="c">成立仪式暨校园宣讲会</div></div>
+  <div class="route">
+   <div class="pt from"><div class="lab">FROM · 出发</div><div class="code">ADD</div><div class="zh">从第一个算子</div></div>
+   <div class="mid"><span class="dot"></span><span class="ln"></span><span class="key">+1</span></div>
+   <div class="pt to"><div class="lab">TO · 到达</div><div class="code">MRG</div><div class="zh">到第一份贡献</div></div>
+  </div>
+  <div class="info">
+   <div><div class="lab">FLIGHT</div><div class="v"><b>CANN1108</b></div></div>
+   <div><div class="lab">DATE · 日期</div><div class="v"><b>11</b> 月 <b>8</b> 日</div></div>
+   <div><div class="lab">GATE · 登机口</div><div class="v">天津大学 XXX</div></div>
+  </div>
+
+ </div>
+ <div class="stub">
+  <div class="barcode" id="bc"></div>
+  <div class="holo"><svg width="120" height="120" viewBox="-60 -60 120 120"><g fill="#fff" opacity=".9"><circle r="26" cx="0" cy="-30"/><circle r="26" cx="28.5" cy="-9.3"/><circle r="26" cx="17.6" cy="24.3"/><circle r="26" cx="-17.6" cy="24.3"/><circle r="26" cx="-28.5" cy="-9.3"/></g><circle r="16" fill="#FFD45C"/></svg></div>
+  <div class="st" style="top:150px"><div class="lab">PASSENGER · 乘客</div><div style="font:900 50px 'Noto Sans CJK SC';margin-top:8px">大学生开发者</div></div>
+  <div class="st" style="top:280px"><div class="lab">SEAT · 座位</div><div style="font:900 64px 'Inter Display';margin-top:4px;color:var(--b)">No.0001</div></div>
+  <div class="st" style="top:420px"><div class="lab">ROUTE</div><div style="font:900 60px 'Inter Display';margin-top:4px">ADD → MRG</div></div>
+  <div class="st" style="top:560px"><div class="qr">报名二维码<br>占位</div></div>
+ </div>
+</div>
+<div class="stamp" style="left:2160px;top:1040px">MERGED ✓<small>TJU · 11.08</small></div>
+<div class="sticker" style="left:2050px;top:150px">hello, CANN_</div>
+<script>
+const bc=document.getElementById('bc');let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;
+for(let i=0;i<46;i++){const e=document.createElement('i');e.style.width=(r()<.35?8:r()<.6?5:3)+'px';bc.appendChild(e);}
+</script>
+</body></html>
