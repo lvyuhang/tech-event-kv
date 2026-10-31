@@ -15,12 +15,17 @@
 - **审美自检**：硬性检查 + 八维审美评分（先和天花板作品并排校准），不达标按最低分维度回到对应步骤迭代。
 - **经验沉淀**：评审经验进 `references/lessons.md`，设计师标注资料进 `library/`。
 
+## 先读
+
+`references/playbook.md`：实战手册，27 条经验，新项目从这里开始。
+
 ## 结构
 
 ```
 SKILL.md                    主流程与硬规则
 references/
   brief-analysis.md         需求分析：九个问题、风格翻译、验收清单、待确认问题（第 1 步关卡）
+  playbook.md               实战手册（v3.0）：需求、参考迁移、大气不碎不 AI、元素、文字、提示词、交付
   reference-transfer.md     参考迁移：骨架 / 语言照搬，语义按槽位替换，过约束
   genres.md                 活动类型与视觉惯例、各类型评分权重
   brief.md                  brief 字段、活动类型 → 默认调性
@@ -75,6 +80,7 @@ python scripts/render.py examples/galaxy-devcon/config.json --out /tmp/kv-out
 
 ## 版本
 
+- v3.0：实战手册 playbook.md（汇总 L19–L38）；硬规则 2 改为"正式稿文字由排版生成"；新增 CANN 挑战赛项目起步记录
 - v2.4：主 KV"大气"原则（活动名做主体、元素少而大）；天大 "> CANN_" 3D 大字主视觉（three.js 替身 + image-2 提示词）；经验 L34
 - v2.3：线下印刷主视觉板的约束（远看、人挡下半部、logo、放大倍数、CMYK、画幅），在提方向前筛创意；经验 L33
 - v2.2：三种可复用创意结构（载体借用 / 贴纸堆 / 场景微缩）；天大登机牌、贴纸笔记本两版代码直出初稿，招新摊位 Brief + 提示词包
